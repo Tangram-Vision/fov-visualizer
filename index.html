@@ -11,25 +11,29 @@
 <body>
 
     <div id="info">
-        <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - spotlight by <a
-            href="http://master-domain.com" target="_blank" rel="noopener">Master James</a><br />
+        FOV Explorer by <a href="https://tangramvision.com" target="_blank" rel="noopener">Tangram Vision</a>
     </div>
 
     <script type="module">
+        // from https://threejs.org/examples/#webgl_lights_spotlight
+        // inspiration https://cs.wellesley.edu/~cs307/threejs/demos/Camera/frustum.shtml
+        // inspiration https://www.smeenk.com/webgl/kinectfovexplorer.html
 
         import * as THREE from 'https://cdn.skypack.dev/three';
+        import { CameraHelperArc } from './CameraHelperArc.js';
 
         import { GUI } from 'https://cdn.skypack.dev/three/examples/jsm/libs/dat.gui.module.js';
 
         import { OrbitControls } from 'https://cdn.skypack.dev/three/examples/jsm/controls/OrbitControls.js';
 
         let renderer, scene, camera;
+        let activeCamera;
 
         let spotLight, lightHelper, shadowCameraHelper;
         let cam, camHelper;
 
         let gui;
-        let farController, nearController;
+        let farController, nearController, sensorController, fovController, aspectController;
 
         function init() {
 
@@ -46,26 +50,32 @@
             scene = new THREE.Scene();
 
             camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(-10, 5, -10);
-            camera.lookAt(5, 0, 0);
+            camera.position.set(-4, 3, -3);
+            const lookAtTarget = new THREE.Vector3(2, 2, 0);
 
             cam = new THREE.PerspectiveCamera(30, 16.0 / 9.0, 1, 1000);
             cam.position.set(0, 2, 0);
             cam.rotateY(-Math.PI / 2);
-            cam.near = 0.1;
+            cam.near = 0.5;
             cam.far = 10;
             scene.add(cam);
-            camHelper = new THREE.CameraHelper(cam);
+            camHelper = new CameraHelperArc(cam);
             scene.add(camHelper);
 
+            /*
             const size = 10;
             const divisions = 10;
-
             for (let i = 0; i < 2; i++) {
                 const gridHelper = new THREE.GridHelper(size, divisions, new THREE.Color(0xffffff), new THREE.Color(0x444444));
                 gridHelper.position.set(i * size, 0, 0);
                 scene.add(gridHelper);
             }
+            */
+
+            const polarGridHelper = new THREE.PolarGridHelper(200, 16, 8, 64, 0x0000ff, 0x808080);
+            polarGridHelper.position.y = - 150;
+            polarGridHelper.position.x = 200;
+            // scene.add(polarGridHelper);
 
             const axesHelper = new THREE.AxesHelper(5);
             axesHelper.position.set(0, 0.01, 0);
@@ -76,9 +86,84 @@
             // controls.minDistance = 20;
             controls.maxDistance = 100;
             controls.enablePan = true;
+            controls.target = lookAtTarget;
+            // Need to set camera lookat after OrbitControls, otherwise it looks at the origin
+            camera.lookAt(lookAtTarget);
+            activeCamera = camera;
 
             const ambient = new THREE.AmbientLight(0xffffff, 0.1);
             scene.add(ambient);
+
+
+            const group = new THREE.Group();
+            const geometry = new THREE.PlaneGeometry(20, 10, 20, 10);
+
+            const meshMaterial = new THREE.MeshPhongMaterial({ color: 0x156289, emissive: 0x072534, side: THREE.DoubleSide, flatShading: true });
+            const plane = new THREE.Mesh(geometry, meshMaterial);
+            group.add(plane);
+
+            const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2 });
+            lineMaterial.depthTest = false;
+            // This approach doesn't render all the line segments for some
+            // reason, so switched to using WireframeGeometry.
+            // const planeLines = new THREE.LineSegments(geometry, lineMaterial);
+            const wireframe = new THREE.WireframeGeometry(geometry);
+            const planeLines = new THREE.LineSegments(wireframe, lineMaterial);
+            group.add(planeLines);
+
+            group.rotateX(-Math.PI / 2);
+            group.position.set(5, 0, 0);
+            scene.add(group);
+
+            // Eyeballing the ellipse curve for min and max range
+            const vertCurve = new THREE.EllipseCurve(
+                0, 0,            // ax, aY
+                10, 10,           // xRadius, yRadius
+                - dtr(20), dtr(20),  // aStartAngle, aEndAngle
+                false,            // aClockwise
+                0                 // aRotation
+            );
+            const points2 = vertCurve.getPoints(50);
+            const geometry2 = new THREE.BufferGeometry().setFromPoints(points2);
+            const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+            // TODO: ellipse is just a bunch of lines... so that could be added
+            // to CameraHelperArc's list of points/vertices
+            const ellipse = new THREE.Line(geometry2, material);
+            ellipse.position.set(cam.position.x, cam.position.y, cam.position.z);
+            scene.add(ellipse);
+
+            // Eyeballing the ellipse curve for min and max range
+            const horizCurve = new THREE.EllipseCurve(
+                0, 0,            // ax, aY
+                10, 10,           // xRadius, yRadius
+                - dtr(32.5), dtr(32.5),  // aStartAngle, aEndAngle
+                false,            // aClockwise
+                0                 // aRotation
+            );
+            const points3 = horizCurve.getPoints(50);
+            const geometry3 = new THREE.BufferGeometry().setFromPoints(points3);
+            // TODO: ellipse is just a bunch of lines... so that could be added
+            // to CameraHelperArc's list of points/vertices
+            const ellipse2 = new THREE.Line(geometry3, material);
+            ellipse2.rotateX(Math.PI / 2);
+            ellipse2.position.set(cam.position.x, cam.position.y, cam.position.z);
+            scene.add(ellipse2);
+
+
+            // Objects in scene
+            const geometry4 = new THREE.BoxGeometry(2, 2, 2);
+            const texture = new THREE.TextureLoader().load('textures/crate.gif',
+                function (texture) {
+                    const material2 = new THREE.MeshBasicMaterial({ map: texture });
+                    const mesh = new THREE.Mesh(geometry4, material2);
+                    mesh.position.set(8, 1, 2);
+                    scene.add(mesh);
+                    render();
+                });
+
+
+
+            //
 
             // spotLight = new THREE.SpotLight(0xffffff, 1);
             // spotLight.position.set(15, 40, 35);
@@ -149,7 +234,7 @@
 
             // shadowCameraHelper.update();
 
-            renderer.render(scene, camera);
+            renderer.render(scene, activeCamera);
             // renderer.render(scene, cam);
 
         }
@@ -184,16 +269,18 @@
                 fov: cam.fov,
                 aspect: cam.aspect,
                 sensor: "rs1",
+                viewFromCamera: false,
             };
 
-            gui.add(params, 'sensor', Object.keys(sensors)).onChange(function (val) {
+            sensorController = gui.add(params, 'sensor', Object.keys(sensors)).onChange(function (val) {
 
                 console.log(`sensor=${val}`);
                 const params = sensors[val];
-                cam.near = params["minRange"];
-                cam.far = params["maxRange"];
-                cam.fov = params["horizFov"];
-                cam.aspect = aspectFromFov(params["horizFov"], params["vertFov"]);
+                nearController.setValue(params["minRange"]);
+                farController.setValue(params["maxRange"]);
+                fovController.setValue(params["vertFov"]);
+                const aspect = aspectFromFov(params["horizFov"], params["vertFov"]);
+                aspectController.setValue(aspect);
                 render();
 
             });
@@ -216,16 +303,28 @@
 
             });
 
-            gui.add(params, 'fov', 10, 180).onChange(function (val) {
+            fovController = gui.add(params, 'fov', 10, 180).onChange(function (val) {
 
                 cam.fov = val;
                 render();
 
             });
 
-            gui.add(params, 'aspect', 0.1, 10.0).onChange(function (val) {
+            aspectController = gui.add(params, 'aspect', 0.1, 10.0).onChange(function (val) {
 
                 cam.aspect = val;
+                render();
+
+            });
+
+            gui.add(params, 'viewFromCamera').onChange(function (val) {
+
+                if (val) {
+                    activeCamera = cam;
+                }
+                else {
+                    activeCamera = camera;
+                }
                 render();
 
             });
@@ -239,6 +338,8 @@
         buildGui();
 
         render();
+
+        sensorController.setValue("Intel RealSense D415");
 
     </script>
 
