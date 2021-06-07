@@ -117,41 +117,6 @@
             group.position.set(5, 0, 0);
             scene.add(group);
 
-            // Eyeballing the ellipse curve for min and max range
-            const vertCurve = new THREE.EllipseCurve(
-                0, 0,            // ax, aY
-                10, 10,           // xRadius, yRadius
-                - dtr(20), dtr(20),  // aStartAngle, aEndAngle
-                false,            // aClockwise
-                0                 // aRotation
-            );
-            const points2 = vertCurve.getPoints(50);
-            const geometry2 = new THREE.BufferGeometry().setFromPoints(points2);
-            const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-            // TODO: ellipse is just a bunch of lines... so that could be added
-            // to CameraHelperArc's list of points/vertices
-            const ellipse = new THREE.Line(geometry2, material);
-            ellipse.position.set(cam.position.x, cam.position.y, cam.position.z);
-            scene.add(ellipse);
-
-            // Eyeballing the ellipse curve for min and max range
-            const horizCurve = new THREE.EllipseCurve(
-                0, 0,            // ax, aY
-                10, 10,           // xRadius, yRadius
-                - dtr(32.5), dtr(32.5),  // aStartAngle, aEndAngle
-                false,            // aClockwise
-                0                 // aRotation
-            );
-            const points3 = horizCurve.getPoints(50);
-            const geometry3 = new THREE.BufferGeometry().setFromPoints(points3);
-            // TODO: ellipse is just a bunch of lines... so that could be added
-            // to CameraHelperArc's list of points/vertices
-            const ellipse2 = new THREE.Line(geometry3, material);
-            ellipse2.rotateX(Math.PI / 2);
-            ellipse2.position.set(cam.position.x, cam.position.y, cam.position.z);
-            scene.add(ellipse2);
-
-
             // Objects in scene
             const geometry4 = new THREE.BoxGeometry(2, 2, 2);
             const texture = new THREE.TextureLoader().load('textures/crate.gif',

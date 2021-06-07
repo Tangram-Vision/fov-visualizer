@@ -2,6 +2,7 @@ import * as THREE from 'https://cdn.skypack.dev/three';
 
 const _vector = /*@__PURE__*/ new THREE.Vector3();
 const _camera = /*@__PURE__*/ new THREE.Camera();
+const _curve = /*@__PURE__*/ new THREE.EllipseCurve();
 
 /**
  *	- shows frustum, line of sight and up of the camera
@@ -21,6 +22,8 @@ class CameraHelperArc extends THREE.LineSegments {
         const colors = [];
 
         const pointMap = {};
+        const farCurvePoints = 50;
+        const nearCurvePoints = 10;
 
         // colors
 
@@ -71,58 +74,25 @@ class CameraHelperArc extends THREE.LineSegments {
 
         // cross
 
-        // TODO: make these curved arcs instead
-        addLine('cn1', 'cn2', colorCross);
-        addLine('cn3', 'cn4', colorCross);
-
+        // addLine('cn1', 'cn2', colorCross);
+        // addLine('cn3', 'cn4', colorCross);
         addLine('cf1', 'cf2', colorCross);
         addLine('cf3', 'cf4', colorCross);
 
-        /*
-        function addCurve(a, b, color) {
+        // far cross arcs
+        addCurve('fh', colorFrustum);
+        addCurve('fv', colorFrustum);
 
-            _vector.set(x, y, z).unproject(camera);
-            const points = pointMap[point];
+        // near cross arcs
+        addCurve('nh', colorFrustum);
+        addCurve('nv', colorFrustum);
 
-            addPoint(a, color);
-            addPoint(b, color);
-
-            // Eyeballing the ellipse curve for min and max range
-            const vertCurve = new THREE.EllipseCurve(
-                0, 0,            // ax, aY
-                10, 10,           // xRadius, yRadius
-                - dtr(20), dtr(20),  // aStartAngle, aEndAngle
-                false,            // aClockwise
-                0                 // aRotation
-            );
-            const points2 = vertCurve.getPoints(50);
-            const geometry2 = new THREE.BufferGeometry().setFromPoints(points2);
-            const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-            // TODO: ellipse is just a bunch of lines... so that could be added
-            // to CameraHelperArc's list of points/vertices
-            const ellipse = new THREE.Line(geometry2, material);
-            ellipse.position.set(cam.position.x, cam.position.y, cam.position.z);
-            scene.add(ellipse);
-
-            // Eyeballing the ellipse curve for min and max range
-            const horizCurve = new THREE.EllipseCurve(
-                0, 0,            // ax, aY
-                10, 10,           // xRadius, yRadius
-                - dtr(32.5), dtr(32.5),  // aStartAngle, aEndAngle
-                false,            // aClockwise
-                0                 // aRotation
-            );
-            const points3 = horizCurve.getPoints(50);
-            const geometry3 = new THREE.BufferGeometry().setFromPoints(points3);
-            // TODO: ellipse is just a bunch of lines... so that could be added
-            // to CameraHelperArc's list of points/vertices
-            const ellipse2 = new THREE.Line(geometry3, material);
-            ellipse2.rotateX(Math.PI / 2);
-            ellipse2.position.set(cam.position.x, cam.position.y, cam.position.z);
-            scene.add(ellipse2);
-
+        function addCurve(direction, color) {
+            const curvePoints = (direction.startsWith('f')) ? farCurvePoints : nearCurvePoints;
+            for (let i = 0; i < curvePoints; i++) {
+                addLine(`${direction}-${i}`, `${direction}-${i + 1}`, color);
+            }
         }
-        */
 
         function addLine(a, b, color) {
 
@@ -160,6 +130,8 @@ class CameraHelperArc extends THREE.LineSegments {
         this.matrixAutoUpdate = false;
 
         this.pointMap = pointMap;
+        this.farCurvePoints = farCurvePoints;
+        this.nearCurvePoints = nearCurvePoints;
 
         this.update();
 
@@ -201,25 +173,6 @@ class CameraHelperArc extends THREE.LineSegments {
         // TODO: OR, figure out the coord by just by dividing by the camera's NEAR coordinate? That's what the 1/d factor is in the projection, right?
         // see diagram
 
-        _vector.set(w, 0, 1).unproject(_camera);
-        // TODO: Why is the z-coord negative? Do I need to do something else with the camera's orientation?
-        _vector.z = Math.abs(_vector.z);
-        const hfov_half = Math.atan2(_vector.x, _vector.z);
-        const hx = radius * Math.sin(hfov_half);
-        const hz = radius * Math.cos(hfov_half);
-
-        _vector.set(0, h, 1).unproject(_camera);
-        // TODO: Why is the z-coord negative? Do I need to do something else with the camera's orientation?
-        _vector.z = Math.abs(_vector.z);
-        const vfov_half = Math.atan2(_vector.y, _vector.z);
-        const vy = radius * Math.sin(vfov_half);
-        const vz = radius * Math.cos(vfov_half);
-
-        // Flip z-coord back to negative while projecting.
-        // TODO: Fix this, like the above TODOs
-        const hProjectZ = _vector.set(hx, 0, -hz).project(_camera).z;
-        const vProjectZ = _vector.set(0, vy, -vz).project(_camera).z;
-
         // center / target
 
         setPoint('c', pointMap, geometry, _camera, 0, 0, - 1);
@@ -227,29 +180,33 @@ class CameraHelperArc extends THREE.LineSegments {
 
         // near
 
+        // Rectangular
         // setPoint('n1', pointMap, geometry, _camera, - w, - h, - 1);
         // setPoint('n2', pointMap, geometry, _camera, w, - h, - 1);
         // setPoint('n3', pointMap, geometry, _camera, - w, h, - 1);
         // setPoint('n4', pointMap, geometry, _camera, w, h, - 1);
 
-        // TODO: calculate projected distance for near also!
-        // TODO: calculate projected distance for near also!
-        // TODO: calculate projected distance for near also!
-        setPoint('n1', pointMap, geometry, _camera, w, 0, - 1.2);
-        setPoint('n2', pointMap, geometry, _camera, 0, h, - 1.2);
-        setPoint('n3', pointMap, geometry, _camera, - w, 0, - 1.2);
-        setPoint('n4', pointMap, geometry, _camera, 0, -h, - 1.2);
+        // Arced
+        const nearZ = calcFrustumProjectedArcCoordZ("near", _camera);
+        setPoint('n1', pointMap, geometry, _camera, w, 0, nearZ["horizontal"]);
+        setPoint('n2', pointMap, geometry, _camera, 0, h, nearZ["vertical"]);
+        setPoint('n3', pointMap, geometry, _camera, - w, 0, nearZ["horizontal"]);
+        setPoint('n4', pointMap, geometry, _camera, 0, -h, nearZ["vertical"]);
 
         // far
 
+        // Rectangular
         // setPoint('f1', pointMap, geometry, _camera, - w, - h, 1);
         // setPoint('f2', pointMap, geometry, _camera, w, - h, 1);
         // setPoint('f3', pointMap, geometry, _camera, - w, h, 1);
         // setPoint('f4', pointMap, geometry, _camera, w, h, 1);
-        setPoint('f1', pointMap, geometry, _camera, w, 0, hProjectZ);
-        setPoint('f2', pointMap, geometry, _camera, 0, h, vProjectZ);
-        setPoint('f3', pointMap, geometry, _camera, - w, 0, hProjectZ);
-        setPoint('f4', pointMap, geometry, _camera, 0, -h, vProjectZ);
+
+        // Arced
+        const farZ = calcFrustumProjectedArcCoordZ("far", _camera);
+        setPoint('f1', pointMap, geometry, _camera, w, 0, farZ["horizontal"]);
+        setPoint('f2', pointMap, geometry, _camera, 0, h, farZ["vertical"]);
+        setPoint('f3', pointMap, geometry, _camera, - w, 0, farZ["horizontal"]);
+        setPoint('f4', pointMap, geometry, _camera, 0, -h, farZ["vertical"]);
 
         // up
 
@@ -269,11 +226,11 @@ class CameraHelperArc extends THREE.LineSegments {
         setPoint('cn3', pointMap, geometry, _camera, 0, - h, - 1);
         setPoint('cn4', pointMap, geometry, _camera, 0, h, - 1);
 
-        // TODO: Do something to set unprojected curve coordinates in geometry, don't bother trying to do them in projected coords
-        // TODO: Do something to set unprojected curve coordinates in geometry, don't bother trying to do them in projected coords
-        // TODO: Do something to set unprojected curve coordinates in geometry, don't bother trying to do them in projected coords
-        // TODO: Do something to set unprojected curve coordinates in geometry, don't bother trying to do them in projected coords
-        // TODO: Do something to set unprojected curve coordinates in geometry, don't bother trying to do them in projected coords
+        // cross arcs
+        setCurvePoints('n1', 'n3', 'nh', pointMap, geometry, this.nearCurvePoints);
+        setCurvePoints('n2', 'n4', 'nv', pointMap, geometry, this.nearCurvePoints);
+        setCurvePoints('f1', 'f3', 'fh', pointMap, geometry, this.farCurvePoints);
+        setCurvePoints('f2', 'f4', 'fv', pointMap, geometry, this.farCurvePoints);
 
         geometry.getAttribute('position').needsUpdate = true;
 
@@ -284,6 +241,49 @@ class CameraHelperArc extends THREE.LineSegments {
         this.geometry.dispose();
         this.material.dispose();
 
+    }
+
+}
+
+// Dunno how to make curves in camera space, so doing it in world/unprojected space
+function setCurvePoints(pointA, pointB, direction, pointMap, geometry, curvePointsCount) {
+
+    const pointsA = pointMap[pointA];
+    const pointsB = pointMap[pointB];
+
+    if (pointsA !== undefined && pointsB !== undefined && pointsA.length > 0 && pointsB.length > 0) {
+
+        const a = pointsA[0];
+        const b = pointsB[0];
+
+        const position = geometry.getAttribute('position');
+
+        const vecA = new THREE.Vector3(position.getX(a), position.getY(a), position.getZ(a));
+        const vecB = new THREE.Vector3(position.getX(b), position.getY(b), position.getZ(b));
+        const angle = vecA.angleTo(vecB);
+        _curve.xRadius = _curve.yRadius = vecA.length();
+        _curve.aStartAngle = - angle / 2;
+        _curve.aEndAngle = angle / 2;
+        const curvePoints = _curve.getPoints(curvePointsCount);
+
+        if (direction.endsWith('h')) {
+            for (let i = 0; i < curvePoints.length; i++) {
+                const point = curvePoints[i];
+                const points = pointMap[`${direction}-${i}`];
+                for (let j = 0; j < points.length; j++) {
+                    position.setXYZ(points[j], point.y, 0, - point.x);
+                }
+            }
+        }
+        else if (direction.endsWith('v')) {
+            for (let i = 0; i < curvePoints.length; i++) {
+                const point = curvePoints[i];
+                const points = pointMap[`${direction}-${i}`];
+                for (let j = 0; j < points.length; j++) {
+                    position.setXYZ(points[j], 0, point.y, - point.x);
+                }
+            }
+        }
     }
 
 }
@@ -309,11 +309,30 @@ function setPoint(point, pointMap, geometry, camera, x, y, z) {
 
 }
 
-function dtr(d) {
-    return d * Math.PI / 180;
-}
-function rtd(r) {
-    return r * 180 / Math.PI;
+function calcFrustumProjectedArcCoordZ(plane, _camera) {
+    const z = (plane === "far") ? 1 : -1;
+    _vector.set(0, 0, z).unproject(_camera);
+    const radius = Math.abs(_vector.z);
+
+    _vector.set(1, 0, z).unproject(_camera);
+    // TODO: Why is the z-coord negative? Do I need to do something else with the camera's orientation?
+    _vector.z = Math.abs(_vector.z);
+    const hfov_half = Math.atan2(_vector.x, _vector.z);
+    const hx = radius * Math.sin(hfov_half);
+    const hz = radius * Math.cos(hfov_half);
+
+    _vector.set(0, 1, z).unproject(_camera);
+    // TODO: Why is the z-coord negative? Do I need to do something else with the camera's orientation?
+    _vector.z = Math.abs(_vector.z);
+    const vfov_half = Math.atan2(_vector.y, _vector.z);
+    const vy = radius * Math.sin(vfov_half);
+    const vz = radius * Math.cos(vfov_half);
+
+    // Flip z-coord back to negative while projecting.
+    // TODO: Fix this, like the above TODOs
+    const hProjectZ = _vector.set(hx, 0, -hz).project(_camera).z;
+    const vProjectZ = _vector.set(0, vy, -vz).project(_camera).z;
+    return { "horizontal": hProjectZ, "vertical": vProjectZ };
 }
 
 export { CameraHelperArc };
