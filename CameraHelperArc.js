@@ -87,6 +87,40 @@ class CameraHelperArc extends THREE.LineSegments {
             addPoint(a, color);
             addPoint(b, color);
 
+            // Eyeballing the ellipse curve for min and max range
+            const vertCurve = new THREE.EllipseCurve(
+                0, 0,            // ax, aY
+                10, 10,           // xRadius, yRadius
+                - dtr(20), dtr(20),  // aStartAngle, aEndAngle
+                false,            // aClockwise
+                0                 // aRotation
+            );
+            const points2 = vertCurve.getPoints(50);
+            const geometry2 = new THREE.BufferGeometry().setFromPoints(points2);
+            const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+            // TODO: ellipse is just a bunch of lines... so that could be added
+            // to CameraHelperArc's list of points/vertices
+            const ellipse = new THREE.Line(geometry2, material);
+            ellipse.position.set(cam.position.x, cam.position.y, cam.position.z);
+            scene.add(ellipse);
+
+            // Eyeballing the ellipse curve for min and max range
+            const horizCurve = new THREE.EllipseCurve(
+                0, 0,            // ax, aY
+                10, 10,           // xRadius, yRadius
+                - dtr(32.5), dtr(32.5),  // aStartAngle, aEndAngle
+                false,            // aClockwise
+                0                 // aRotation
+            );
+            const points3 = horizCurve.getPoints(50);
+            const geometry3 = new THREE.BufferGeometry().setFromPoints(points3);
+            // TODO: ellipse is just a bunch of lines... so that could be added
+            // to CameraHelperArc's list of points/vertices
+            const ellipse2 = new THREE.Line(geometry3, material);
+            ellipse2.rotateX(Math.PI / 2);
+            ellipse2.position.set(cam.position.x, cam.position.y, cam.position.z);
+            scene.add(ellipse2);
+
         }
         */
 
@@ -140,8 +174,51 @@ class CameraHelperArc extends THREE.LineSegments {
 
         // we need just camera projection matrix inverse
         // world matrix must be identity
+        //
+        // greg: changed to copying full matrix so fov, heading, etc. are all
+        // the same for calculating coordinates of the frustum edge points and
+        // arc endpoints
 
         _camera.projectionMatrixInverse.copy(this.camera.projectionMatrixInverse);
+        _camera.projectionMatrix.copy(this.camera.projectionMatrix);
+        // Copying world matrix matches _camera to this.camera orientation when
+        // projecting/unprojecting, otherwise I get z=-10 for unprojecting the
+        // target (middle of the far frustum plane).
+        // But, the matrix is being applied twice, I think. This involves
+        // `this.matrix = camera.matrixWorld` above.
+        // _camera.matrixWorld.copy(this.camera.matrixWorld);
+        // _camera.matrixWorldInverse.copy(this.camera.matrixWorldInverse);
+
+        _vector.set(0, 0, 1).unproject(_camera);
+        const radius = Math.abs(_vector.z);
+
+        // TODO: Figure out how to make these equations agnostic to the direction of the camera?
+        // TODO: Or maybe copy the camera once in the init (before setting
+        //       this.matrix), then just copy matrices in this function?
+        //
+        // TODO: OR, figure out the coord by just by dividing by the camera's NEAR coordinate? That's what the 1/d factor is in the projection, right?
+        // TODO: OR, figure out the coord by just by dividing by the camera's NEAR coordinate? That's what the 1/d factor is in the projection, right?
+        // TODO: OR, figure out the coord by just by dividing by the camera's NEAR coordinate? That's what the 1/d factor is in the projection, right?
+        // see diagram
+
+        _vector.set(w, 0, 1).unproject(_camera);
+        // TODO: Why is the z-coord negative? Do I need to do something else with the camera's orientation?
+        _vector.z = Math.abs(_vector.z);
+        const hfov_half = Math.atan2(_vector.x, _vector.z);
+        const hx = radius * Math.sin(hfov_half);
+        const hz = radius * Math.cos(hfov_half);
+
+        _vector.set(0, h, 1).unproject(_camera);
+        // TODO: Why is the z-coord negative? Do I need to do something else with the camera's orientation?
+        _vector.z = Math.abs(_vector.z);
+        const vfov_half = Math.atan2(_vector.y, _vector.z);
+        const vy = radius * Math.sin(vfov_half);
+        const vz = radius * Math.cos(vfov_half);
+
+        // Flip z-coord back to negative while projecting.
+        // TODO: Fix this, like the above TODOs
+        const hProjectZ = _vector.set(hx, 0, -hz).project(_camera).z;
+        const vProjectZ = _vector.set(0, vy, -vz).project(_camera).z;
 
         // center / target
 
@@ -149,31 +226,30 @@ class CameraHelperArc extends THREE.LineSegments {
         setPoint('t', pointMap, geometry, _camera, 0, 0, 1);
 
         // near
-        // TODO: The "1.2" value is a prototyping/rough guess, not accurate!
-        // TODO: The "1.2" value is a prototyping/rough guess, not accurate!
 
         // setPoint('n1', pointMap, geometry, _camera, - w, - h, - 1);
         // setPoint('n2', pointMap, geometry, _camera, w, - h, - 1);
         // setPoint('n3', pointMap, geometry, _camera, - w, h, - 1);
         // setPoint('n4', pointMap, geometry, _camera, w, h, - 1);
 
+        // TODO: calculate projected distance for near also!
+        // TODO: calculate projected distance for near also!
+        // TODO: calculate projected distance for near also!
         setPoint('n1', pointMap, geometry, _camera, w, 0, - 1.2);
         setPoint('n2', pointMap, geometry, _camera, 0, h, - 1.2);
         setPoint('n3', pointMap, geometry, _camera, - w, 0, - 1.2);
         setPoint('n4', pointMap, geometry, _camera, 0, -h, - 1.2);
 
         // far
-        // TODO: The "0.99" value is a prototyping/rough guess, not accurate!
-        // TODO: The "0.99" value is a prototyping/rough guess, not accurate!
 
         // setPoint('f1', pointMap, geometry, _camera, - w, - h, 1);
         // setPoint('f2', pointMap, geometry, _camera, w, - h, 1);
         // setPoint('f3', pointMap, geometry, _camera, - w, h, 1);
         // setPoint('f4', pointMap, geometry, _camera, w, h, 1);
-        setPoint('f1', pointMap, geometry, _camera, w, 0, 0.99);
-        setPoint('f2', pointMap, geometry, _camera, 0, h, 0.995);
-        setPoint('f3', pointMap, geometry, _camera, - w, 0, 0.99);
-        setPoint('f4', pointMap, geometry, _camera, 0, -h, 0.995);
+        setPoint('f1', pointMap, geometry, _camera, w, 0, hProjectZ);
+        setPoint('f2', pointMap, geometry, _camera, 0, h, vProjectZ);
+        setPoint('f3', pointMap, geometry, _camera, - w, 0, hProjectZ);
+        setPoint('f4', pointMap, geometry, _camera, 0, -h, vProjectZ);
 
         // up
 
@@ -192,6 +268,12 @@ class CameraHelperArc extends THREE.LineSegments {
         setPoint('cn2', pointMap, geometry, _camera, w, 0, - 1);
         setPoint('cn3', pointMap, geometry, _camera, 0, - h, - 1);
         setPoint('cn4', pointMap, geometry, _camera, 0, h, - 1);
+
+        // TODO: Do something to set unprojected curve coordinates in geometry, don't bother trying to do them in projected coords
+        // TODO: Do something to set unprojected curve coordinates in geometry, don't bother trying to do them in projected coords
+        // TODO: Do something to set unprojected curve coordinates in geometry, don't bother trying to do them in projected coords
+        // TODO: Do something to set unprojected curve coordinates in geometry, don't bother trying to do them in projected coords
+        // TODO: Do something to set unprojected curve coordinates in geometry, don't bother trying to do them in projected coords
 
         geometry.getAttribute('position').needsUpdate = true;
 
@@ -225,6 +307,13 @@ function setPoint(point, pointMap, geometry, camera, x, y, z) {
 
     }
 
+}
+
+function dtr(d) {
+    return d * Math.PI / 180;
+}
+function rtd(r) {
+    return r * 180 / Math.PI;
 }
 
 export { CameraHelperArc };
