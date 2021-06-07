@@ -61,7 +61,6 @@
             cam.far = 10;
             scene.add(cam);
 
-            /*
             const size = 10;
             const divisions = 10;
             for (let i = 0; i < 2; i++) {
@@ -69,11 +68,10 @@
                 gridHelper.position.set(i * size, 0, 0);
                 scene.add(gridHelper);
             }
-            */
 
-            const polarGridHelper = new THREE.PolarGridHelper(200, 16, 8, 64, 0x0000ff, 0x808080);
-            polarGridHelper.position.y = - 150;
-            polarGridHelper.position.x = 200;
+            // const polarGridHelper = new THREE.PolarGridHelper(200, 16, 8, 64, 0x0000ff, 0x808080);
+            // polarGridHelper.position.y = - 150;
+            // polarGridHelper.position.x = 200;
             // scene.add(polarGridHelper);
 
             const axesHelper = new THREE.AxesHelper(5);
@@ -97,32 +95,32 @@
             scene.add(camHelper);
 
 
-            const group = new THREE.Group();
-            const geometry = new THREE.PlaneGeometry(20, 10, 20, 10);
+            // const group = new THREE.Group();
+            // const geometry = new THREE.PlaneGeometry(20, 10, 20, 10);
 
-            const meshMaterial = new THREE.MeshPhongMaterial({ color: 0x156289, emissive: 0x072534, side: THREE.DoubleSide, flatShading: true });
-            const plane = new THREE.Mesh(geometry, meshMaterial);
-            group.add(plane);
+            // const meshMaterial = new THREE.MeshPhongMaterial({ color: 0x156289, emissive: 0x072534, side: THREE.DoubleSide, flatShading: true });
+            // const plane = new THREE.Mesh(geometry, meshMaterial);
+            // group.add(plane);
 
-            const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2 });
-            lineMaterial.depthTest = false;
-            // This approach doesn't render all the line segments for some
-            // reason, so switched to using WireframeGeometry.
-            // const planeLines = new THREE.LineSegments(geometry, lineMaterial);
-            const wireframe = new THREE.WireframeGeometry(geometry);
-            const planeLines = new THREE.LineSegments(wireframe, lineMaterial);
-            group.add(planeLines);
+            // const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2 });
+            // lineMaterial.depthTest = false;
+            // // This approach doesn't render all the line segments for some
+            // // reason, so switched to using WireframeGeometry.
+            // // const planeLines = new THREE.LineSegments(geometry, lineMaterial);
+            // const wireframe = new THREE.WireframeGeometry(geometry);
+            // const planeLines = new THREE.LineSegments(wireframe, lineMaterial);
+            // group.add(planeLines);
 
-            group.rotateX(-Math.PI / 2);
-            group.position.set(5, 0, 0);
-            scene.add(group);
+            // group.rotateX(-Math.PI / 2);
+            // group.position.set(5, 0, 0);
+            // scene.add(group);
 
             // Objects in scene
-            const geometry4 = new THREE.BoxGeometry(2, 2, 2);
-            const texture = new THREE.TextureLoader().load('textures/crate.gif',
+            const crate = new THREE.BoxGeometry(2, 2, 2);
+            const texture = new THREE.TextureLoader().load('assets/crate.gif',
                 function (texture) {
                     const material2 = new THREE.MeshBasicMaterial({ map: texture });
-                    const mesh = new THREE.Mesh(geometry4, material2);
+                    const mesh = new THREE.Mesh(crate, material2);
                     mesh.position.set(8, 1, 2);
                     props.push(mesh);
                     scene.add(mesh);
