@@ -209,7 +209,7 @@
 
             });
 
-            farController = gui.add(params, 'far', cam.near + 1, 200).onChange(function (val) {
+            farController = gui.add(params, 'far', cam.near + 1, 40).onChange(function (val) {
 
                 cam.far = val;
                 nearController.max(val - 1);
@@ -218,14 +218,14 @@
 
             });
 
-            fovController = gui.add(params, 'fov', 10, 180).onChange(function (val) {
+            fovController = gui.add(params, 'fov', 10, 179).onChange(function (val) {
 
                 cam.fov = val;
                 render();
 
             });
 
-            aspectController = gui.add(params, 'aspect', 0.1, 10.0).onChange(function (val) {
+            aspectController = gui.add(params, 'aspect', 0.4, 5.0).onChange(function (val) {
 
                 cam.aspect = val;
                 render();
