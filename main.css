@@ -111,3 +111,15 @@ body { overflow: hidden; }
     width: 15%;
     opacity: 0.7;
 }
+
+/* datgui style overrides */
+.dg.a, .dg.a .close-button {
+    width: 300px !important;
+    margin-right: 0px !important;
+}
+
+@media (max-width: 400px) {
+    .dg.a, .dg.a .close-button {
+        width: 100% !important;
+    }
+}

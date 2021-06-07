@@ -201,7 +201,9 @@
 
             });
 
-            nearController = gui.add(params, 'near', 0.1, cam.far - 1).onChange(function (val) {
+            const folder = gui.addFolder("Advanced");
+
+            nearController = folder.add(params, 'near', 0.1, cam.far - 1).onChange(function (val) {
 
                 cam.near = val;
                 farController.min(val + 1);
@@ -210,7 +212,7 @@
 
             });
 
-            farController = gui.add(params, 'far', cam.near + 1, 40).onChange(function (val) {
+            farController = folder.add(params, 'far', cam.near + 1, 40).onChange(function (val) {
 
                 cam.far = val;
                 nearController.max(val - 1);
@@ -219,21 +221,21 @@
 
             });
 
-            fovController = gui.add(params, 'fov', 10, 179).onChange(function (val) {
+            fovController = folder.add(params, 'fov', 10, 179).onChange(function (val) {
 
                 cam.fov = val;
                 render();
 
             });
 
-            aspectController = gui.add(params, 'aspect', 0.4, 5.0).onChange(function (val) {
+            aspectController = folder.add(params, 'aspect', 0.4, 5.0).onChange(function (val) {
 
                 cam.aspect = val;
                 render();
 
             });
 
-            gui.add(params, 'viewFromCamera').onChange(function (val) {
+            folder.add(params, 'viewFromCamera').onChange(function (val) {
 
                 if (val) {
                     activeCamera = cam;
@@ -245,7 +247,7 @@
 
             });
 
-            gui.add(params, 'showProps').onChange(function (val) {
+            folder.add(params, 'showProps').onChange(function (val) {
 
                 props.forEach(function (p) {
                     p.visible = val;
