@@ -37,6 +37,21 @@ document.head.appendChild(script);
 Source: https://github.com/mrdoob/stats.js/
 
 
+## Future feature ideas
+
+- Lidar support (visualize as cylinder/torus)
+- Add multiple cameras (with same origin but distinguishing colors and text
+labels) so you can visualize their overlapping FOVs
+- Show hFOV and vFOV instead of vFOV and aspect ratio
+- A meterstick or checkerboard that can be moved forward/back to more easily
+judge what a sensor will be able to see at a given distance
+- Intro screen (using `#overlay` style from three.js examples) that adds
+context, instructions, branding, etc.
+- Make a custom camera implementation that also obeys the spherical frustum
+boundaries so, when you "look through the camera", the near/far frustum
+boundaries are rounded instead of straight/flat.
+
+
 # To embed
 
 WARNING: The FOV Visualizer isn't currently deployed anywhere, so it can't be
