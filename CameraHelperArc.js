@@ -9,6 +9,7 @@ const _curve = /*@__PURE__*/ new THREE.EllipseCurve();
  *	- suitable for fast updates
  * 	- based on frustum visualization in lightgl.js shadowmap example
  *		http://evanw.github.com/lightgl.js/tests/shadowmap.html
+ *  - greg modified to show a curved frustum at the sensor's max range
  */
 
 class CameraHelperArc extends THREE.LineSegments {
