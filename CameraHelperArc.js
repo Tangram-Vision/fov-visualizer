@@ -9,7 +9,62 @@ const _curve = /*@__PURE__*/ new THREE.EllipseCurve();
  *	- suitable for fast updates
  * 	- based on frustum visualization in lightgl.js shadowmap example
  *		http://evanw.github.com/lightgl.js/tests/shadowmap.html
- *  - greg modified to show a curved frustum at the sensor's max range
+ *
+ *
+ * # Tangram Vision notes:
+ *
+ * Example of regular CameraHelper behavior:
+ * https://threejs.org/examples/#webgl_lights_spotlight
+ *
+ * This file changes CameraHelper behavior to have arced near/far frustum
+ * boundaries, because we care about sensor max range. The regular CameraHelper
+ * displays a rectangular pyramid frustum, so the distance from camera to the
+ * middle of the frustum's "far" plane (the sensor's max range) can be much
+ * smaller than the distance from the camera to the far edges/corners of the
+ * frustum for large FOVs. As an example, a sensor with a 10m max range and
+ * 120-degree horizontal FOV can see 11.5m to the left/right edges of the
+ * frustum, according to the regular CameraHelper. This CameraHelperArc ensures
+ * the *entire* far frustum boundary has a distance of "max sensor range" (e.g.
+ * 10m) from the camera.
+ *
+ * Fundamentally, this implementation uses trigonometry to figure out the
+ * frustum edge coordinates at the correct distances (sensor max and min
+ * ranges). To do so, we calculate the coordinates (x,z) in the diagram below,
+ * knowing the angle and the hypotenuse (which is the sensor's max or min
+ * range).
+ *
+ *     far frustum midpoint         far frustum right edge
+ *    (e.g. sensor max range)     (beyond sensor max range!)
+ *        (0,Z) o-------------------------o (X,Z)
+ *              |                        /
+ *              |                       /
+ *              |                      /
+ *              |                     /
+ *              |                    /
+ *              |                   /
+ *              |                  o  (x,z)
+ *              |                 /   where sqrt(x^2 + z^2) = Z
+ *              |                /    i.e. the distance from the camera to here
+ *              |               /     is the same as the distance from the
+ *              |              /      camera to the far frustum midpoint (this
+ *              |             /       is at the sensor max range)
+ *              |            /
+ *              |           /
+ *              |          /
+ *              |         /
+ *              |        /
+ *              |       /
+ *              |      /
+ *              |     /
+ *              |    /
+ *              |   /
+ *              |  /
+ *              | /
+ *              |/  <-- This angle is half of the horizontal FOV
+ *              o <-- Camera
+ *
+ * Then we draw a curve between the endpoints. The curve also goes through the
+ * center of the frustum "plane" (which is no longer visualized as a plane).
  */
 
 class CameraHelperArc extends THREE.LineSegments {
@@ -154,6 +209,7 @@ class CameraHelperArc extends THREE.LineSegments {
 
         _camera.projectionMatrixInverse.copy(this.camera.projectionMatrixInverse);
         _camera.projectionMatrix.copy(this.camera.projectionMatrix);
+
         // Copying world matrix matches _camera to this.camera orientation when
         // projecting/unprojecting, otherwise I get z=-10 for unprojecting the
         // target (middle of the far frustum plane).
@@ -162,47 +218,31 @@ class CameraHelperArc extends THREE.LineSegments {
         // _camera.matrixWorld.copy(this.camera.matrixWorld);
         // _camera.matrixWorldInverse.copy(this.camera.matrixWorldInverse);
 
-        _vector.set(0, 0, 1).unproject(_camera);
-        const radius = Math.abs(_vector.z);
-
-        // TODO: Figure out how to make these equations agnostic to the direction of the camera?
-        // TODO: Or maybe copy the camera once in the init (before setting
-        //       this.matrix), then just copy matrices in this function?
-        //
-        // TODO: OR, figure out the coord by just by dividing by the camera's NEAR coordinate? That's what the 1/d factor is in the projection, right?
-        // TODO: OR, figure out the coord by just by dividing by the camera's NEAR coordinate? That's what the 1/d factor is in the projection, right?
-        // TODO: OR, figure out the coord by just by dividing by the camera's NEAR coordinate? That's what the 1/d factor is in the projection, right?
-        // see diagram
-
         // center / target
 
         setPoint('c', pointMap, geometry, _camera, 0, 0, - 1);
         setPoint('t', pointMap, geometry, _camera, 0, 0, 1);
 
-        // near
-
-        // Rectangular
+        // near rectangular
         // setPoint('n1', pointMap, geometry, _camera, - w, - h, - 1);
         // setPoint('n2', pointMap, geometry, _camera, w, - h, - 1);
         // setPoint('n3', pointMap, geometry, _camera, - w, h, - 1);
         // setPoint('n4', pointMap, geometry, _camera, w, h, - 1);
 
-        // Arced
+        // near arced
         const nearZ = calcFrustumProjectedArcCoordZ("near", _camera);
         setPoint('n1', pointMap, geometry, _camera, w, 0, nearZ["horizontal"]);
         setPoint('n2', pointMap, geometry, _camera, 0, h, nearZ["vertical"]);
         setPoint('n3', pointMap, geometry, _camera, - w, 0, nearZ["horizontal"]);
         setPoint('n4', pointMap, geometry, _camera, 0, -h, nearZ["vertical"]);
 
-        // far
-
-        // Rectangular
+        // far rectangular
         // setPoint('f1', pointMap, geometry, _camera, - w, - h, 1);
         // setPoint('f2', pointMap, geometry, _camera, w, - h, 1);
         // setPoint('f3', pointMap, geometry, _camera, - w, h, 1);
         // setPoint('f4', pointMap, geometry, _camera, w, h, 1);
 
-        // Arced
+        // far arced
         const farZ = calcFrustumProjectedArcCoordZ("far", _camera);
         setPoint('f1', pointMap, geometry, _camera, w, 0, farZ["horizontal"]);
         setPoint('f2', pointMap, geometry, _camera, 0, h, farZ["vertical"]);
