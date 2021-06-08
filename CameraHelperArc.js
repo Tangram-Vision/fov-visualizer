@@ -22,7 +22,7 @@ class CameraHelperArc extends THREE.LineSegments {
         const colors = [];
 
         const pointMap = {};
-        const farCurvePoints = 50;
+        const farCurvePoints = 40;
         const nearCurvePoints = 10;
 
         // colors

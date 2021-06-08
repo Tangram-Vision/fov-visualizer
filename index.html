@@ -17,6 +17,7 @@
     <div id="corner-watermark"><a href="https://tangramvision.com" target="_blank" rel="noopener"><img
                 alt="Tangram Vision" src="assets/tangram-logo.png"></a></div>
 
+
     <script type="module">
 
         import * as THREE from 'https://cdn.skypack.dev/three';
@@ -32,6 +33,8 @@
 
         let spotLight, lightHelper, shadowCameraHelper;
         let cam, camHelper;
+
+        let _preventExtraRenders = false;
 
         let props = [];
 
@@ -142,10 +145,11 @@
             camera.updateProjectionMatrix();
 
             renderer.setSize(window.innerWidth, window.innerHeight);
-
+            requestAnimationFrame(render);
         }
 
         function render() {
+            // console.log(performance.now());
 
             cam.updateProjectionMatrix();
             camHelper.update();
@@ -192,12 +196,15 @@
 
                 console.log(`sensor=${val}`);
                 const params = sensors[val];
+
+                _preventExtraRenders = true;
                 nearController.setValue(params["minRange"]);
                 farController.setValue(params["maxRange"]);
                 fovController.setValue(params["vertFov"]);
                 const aspect = aspectFromFov(params["horizFov"], params["vertFov"]);
                 aspectController.setValue(aspect);
-                render();
+                requestAnimationFrame(render);
+                _preventExtraRenders = false;
 
             });
 
@@ -208,7 +215,7 @@
                 cam.near = val;
                 farController.min(val + 1);
                 farController.updateDisplay();
-                render();
+                if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
@@ -217,21 +224,21 @@
                 cam.far = val;
                 nearController.max(val - 1);
                 nearController.updateDisplay();
-                render();
+                if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
             fovController = folder.add(params, 'fov', 10, 179).onChange(function (val) {
 
                 cam.fov = val;
-                render();
+                if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
             aspectController = folder.add(params, 'aspect', 0.4, 5.0).onChange(function (val) {
 
                 cam.aspect = val;
-                render();
+                if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
@@ -243,7 +250,7 @@
                 else {
                     activeCamera = camera;
                 }
-                render();
+                requestAnimationFrame(render);
 
             });
 
@@ -252,7 +259,7 @@
                 props.forEach(function (p) {
                     p.visible = val;
                 })
-                render();
+                requestAnimationFrame(render);
 
             });
 
@@ -265,8 +272,8 @@
         buildGui();
 
         sensorController.setValue("Intel RealSense D415");
-
-        render();
+        // Setting sensor triggers a render already.
+        // render();
 
     </script>
 
