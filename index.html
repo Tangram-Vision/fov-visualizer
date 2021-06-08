@@ -166,6 +166,9 @@
         function rtd(r) {
             return r * 180 / Math.PI;
         }
+        function maxNear(far) {
+            return Math.min(far / 2, 5);
+        }
         function aspectFromFov(horizFov, vertFov) {
             return Math.tan(dtr(horizFov / 2)) / Math.tan(dtr(vertFov / 2));
         }
@@ -206,13 +209,13 @@
             gui = new GUI();
 
             const params = {
-                near: cam.near,
-                far: cam.far,
-                fov: cam.fov,
-                aspect: cam.aspect,
+                "min range": cam.near,
+                "max range": cam.far,
+                "vertical fov": cam.fov,
+                "aspect ratio": cam.aspect,
                 sensor: "rs1",
-                viewFromCamera: false,
-                showProps: true,
+                "view from camera": false,
+                "show props": true,
             };
 
             sensorController = gui.add(params, 'sensor', Object.keys(sensors)).onChange(function (val) {
@@ -233,7 +236,7 @@
 
             const folder = gui.addFolder("Advanced");
 
-            nearController = folder.add(params, 'near', 0.1, cam.far - 1).onChange(function (val) {
+            nearController = folder.add(params, 'min range', 0.1, maxNear(cam.far)).onChange(function (val) {
 
                 cam.near = val;
                 farController.min(val + 1);
@@ -242,30 +245,30 @@
 
             });
 
-            farController = folder.add(params, 'far', cam.near + 1, 40).onChange(function (val) {
+            farController = folder.add(params, 'max range', cam.near + 1, 40).onChange(function (val) {
 
                 cam.far = val;
-                nearController.max(val - 1);
+                nearController.max(maxNear(val));
                 nearController.updateDisplay();
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
-            fovController = folder.add(params, 'fov', 10, 179).onChange(function (val) {
+            fovController = folder.add(params, 'vertical fov', 10, 179).onChange(function (val) {
 
                 cam.fov = val;
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
-            aspectController = folder.add(params, 'aspect', 0.4, 5.0).onChange(function (val) {
+            aspectController = folder.add(params, 'aspect ratio', 0.4, 5.0).onChange(function (val) {
 
                 cam.aspect = val;
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
-            folder.add(params, 'viewFromCamera').onChange(function (val) {
+            folder.add(params, 'view from camera').onChange(function (val) {
 
                 if (val) {
                     activeCamera = cam;
@@ -277,7 +280,7 @@
 
             });
 
-            folder.add(params, 'showProps').onChange(function (val) {
+            folder.add(params, 'show props').onChange(function (val) {
 
                 props.forEach(function (p) {
                     p.visible = val;
