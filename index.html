@@ -69,10 +69,12 @@
 
             const size = 10;
             const divisions = 10;
-            for (let i = 0; i < 2; i++) {
-                const gridHelper = new THREE.GridHelper(size, divisions, new THREE.Color(0xffffff), new THREE.Color(0x444444));
-                gridHelper.position.set(i * size, 0, 0);
-                scene.add(gridHelper);
+            for (let row = 0; row < 3; row++) {
+                for (let col = -1; col < 2; col++) {
+                    const gridHelper = new THREE.GridHelper(size, divisions, new THREE.Color(0xffffff), new THREE.Color(0x444444));
+                    gridHelper.position.set(row * size, 0, col * size);
+                    scene.add(gridHelper);
+                }
             }
 
             // const polarGridHelper = new THREE.PolarGridHelper(200, 16, 8, 64, 0x0000ff, 0x808080);
