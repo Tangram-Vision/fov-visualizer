@@ -50,6 +50,9 @@ context, instructions, branding, etc.
 - Make a custom camera implementation that also obeys the spherical frustum
 boundaries so, when you "look through the camera", the near/far frustum
 boundaries are rounded instead of straight/flat.
+- Alternative to the above (and easier): When "look through the camera" is
+enabled, create a translucent sphere at the camera showing the max range of
+the sensor.
 
 
 # To embed
