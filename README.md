@@ -66,7 +66,7 @@ extra content.
 Embed with an html snippet such as the below:
 
 ```
-<iframe style="width: 100%; height: 400px;" src="https://tangramvision.com/path-to-where-fov-visualizer-lives" allowfullscreen="" frameborder="0"></iframe>
+<iframe style="width: 100%; height: 500px;" src="https://fov-visualizer.tangramvision.com" allowfullscreen="" frameborder="0"></iframe>
 ```
 
 See `embed-example.html` for an example of what embedding looks like.
