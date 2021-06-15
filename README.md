@@ -39,29 +39,27 @@ Source: https://github.com/mrdoob/stats.js/
 
 ## Future feature ideas
 
-- Lidar support (visualize as cylinder/torus)
-- Add multiple cameras (with same origin but distinguishing colors and text
-labels) so you can visualize their overlapping FOVs
-- Show hFOV and vFOV instead of vFOV and aspect ratio
-- A meterstick or checkerboard that can be moved forward/back to more easily
-judge what a sensor will be able to see at a given distance
-- Intro screen (using `#overlay` style from three.js examples) that adds
-context, instructions, branding, etc.
-- Make a custom camera implementation that also obeys the spherical frustum
-boundaries so, when you "look through the camera", the near/far frustum
-boundaries are rounded instead of straight/flat.
-- Alternative to the above (and easier): When "look through the camera" is
-enabled, create a translucent sphere at the camera showing the max range of
-the sensor.
+See https://gitlab.com/tangram-vision/fov-visualizer/-/issues
+
+
+# Deployment
+
+To deploy, use the `terraform/aws` folder in the `devops` repo. The
+`fov_visualizer.tf` file in that folder takes a path to this repo and updates S3
++ CloudFront to match the declared configuration, including uploading any
+changed files from this repo to S3.
+
+The deployment command will look like:
+
+```
+TF_VAR_fov_visualizer_repo_filepath=~/repos/fov-visualizer terraform plan
+TF_VAR_fov_visualizer_repo_filepath=~/repos/fov-visualizer terraform apply
+```
+
+For other ways to supply the variable, see the terraform folder's README.
 
 
 # To embed
-
-WARNING: The FOV Visualizer isn't currently deployed anywhere, so it can't be
-embedded anywhere either. The `src` url in the code snippet below needs to be
-updated to point to wherever the visualizer is deployed. The visualizer should
-be deployed as a standalone page, so the iframe doesn't include any unnecessary
-extra content.
 
 Embed with an html snippet such as the below:
 
