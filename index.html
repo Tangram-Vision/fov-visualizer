@@ -339,9 +339,9 @@
             gui = new GUI();
 
             const params = {
-                "min range": sensor1.near,
-                "max range": sensor1.far,
-                "vertical fov": sensor1.fov,
+                "min range (m.)": sensor1.near,
+                "max range (m.)": sensor1.far,
+                "vertical fov (°)": sensor1.fov,
                 "aspect ratio": sensor1.aspect,
                 "sensor1 (yellow)": "rs1",
                 "sensor2 (cyan)": "rs1",
@@ -424,7 +424,7 @@
 
             const sensor1Folder = gui.addFolder("Advanced Sensor1 Controls");
 
-            nearController = sensor1Folder.add(params, 'min range', 0.1, maxNear(sensor1.far), 0.1).onChange(function (val) {
+            nearController = sensor1Folder.add(params, 'min range (m.)', 0.1, maxNear(sensor1.far), 0.1).onChange(function (val) {
 
                 sensor1.near = val;
                 farController.min(val + 1);
@@ -433,7 +433,7 @@
 
             });
 
-            farController = sensor1Folder.add(params, 'max range', sensor1.near + 1, 40, 0.1).onChange(function (val) {
+            farController = sensor1Folder.add(params, 'max range (m.)', sensor1.near + 1, 40, 0.1).onChange(function (val) {
 
                 sensor1.far = val;
                 nearController.max(maxNear(val));
@@ -442,7 +442,7 @@
 
             });
 
-            fovController = sensor1Folder.add(params, 'vertical fov', 10, 179).onChange(function (val) {
+            fovController = sensor1Folder.add(params, 'vertical fov (°)', 10, 179).onChange(function (val) {
 
                 sensor1.fov = val;
                 if (!_preventExtraRenders) requestAnimationFrame(render);
