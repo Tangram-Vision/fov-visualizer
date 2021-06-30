@@ -33,17 +33,18 @@
         let activeCamera;
 
         let spotLight, lightHelper, shadowCameraHelper;
-        let sensor, camHelper;
+        let sensor1, sensorHelper1;
+        let sensor2, sensorHelper2;
         let checkerboardTexture, gridHelper, checkerboard;
 
-        let minRangeLabel, maxRangeLabel;
+        let sensor1MinRangeLabel, sensor1MaxRangeLabel, sensor2MinRangeLabel, sensor2MaxRangeLabel;
 
         let _preventExtraRenders = false;
 
         let props = [];
 
         let gui;
-        let farController, nearController, sensorController, fovController, aspectController, propDistanceController, checkerboardDistanceController, gridSizeController;
+        let farController, nearController, sensor1Controller, sensor2Controller, fovController, aspectController, propDistanceController, checkerboardDistanceController, gridSizeController;
 
         function init() {
 
@@ -69,13 +70,20 @@
             camera.position.set(-4, 3, -3);
             const lookAtTarget = new THREE.Vector3(2, 2, 0);
 
-            sensor = new THREE.PerspectiveCamera(30, 16.0 / 9.0, 1, 1000);
-            window.sensor = sensor;
-            sensor.position.set(0, 2, 0);
-            sensor.rotateY(-Math.PI / 2);
-            sensor.near = 0.5;
-            sensor.far = 10;
-            scene.add(sensor);
+            sensor1 = new THREE.PerspectiveCamera(30, 16.0 / 9.0, 1, 1000);
+            sensor1.position.set(0, 2, 0);
+            sensor1.rotateY(-Math.PI / 2);
+            sensor1.near = 0.5;
+            sensor1.far = 10;
+            scene.add(sensor1);
+
+            sensor2 = new THREE.PerspectiveCamera(30, 16.0 / 9.0, 1, 1000);
+            sensor2.position.set(0, 2, 0);
+            sensor2.rotateY(-Math.PI / 2);
+            sensor2.near = 0.5;
+            sensor2.far = 10;
+            sensor2.visible = false;
+            scene.add(sensor2);
 
             /*
             const size = 10;
@@ -114,8 +122,13 @@
             const ambient = new THREE.AmbientLight(0xffffff, 0.1);
             scene.add(ambient);
 
-            camHelper = new CameraHelperArc(sensor);
-            scene.add(camHelper);
+            const sensor1Colors = [0xffaa00, 0xff0000, 0xffffff, 0x333333];
+            const sensor2Colors = [0x00aaff, 0x0000ff, 0xffffff, 0x333333];
+            sensorHelper1 = new CameraHelperArc(sensor1, sensor1Colors);
+            scene.add(sensorHelper1);
+            sensorHelper2 = new CameraHelperArc(sensor2, sensor2Colors);
+            sensorHelper2.visible = false;
+            scene.add(sensorHelper2);
 
 
             const geometry = new THREE.PlaneGeometry(40, 40, 1, 1);
@@ -164,21 +177,39 @@
                 render();
             });
 
-            const minRangeLabelDiv = document.createElement('div');
-            minRangeLabelDiv.className = 'label';
-            minRangeLabelDiv.textContent = 'Min Range: 0.0 m';
-            // minRangeLabelDiv.style.marginTop = '-1em';
-            minRangeLabel = new CSS2DObject(minRangeLabelDiv);
-            minRangeLabel.position.set(1, 1, 1);
-            scene.add(minRangeLabel);
+            const sensor1MinRangeLabelDiv = document.createElement('div');
+            sensor1MinRangeLabelDiv.classList.add('label', 'sensor1');
+            sensor1MinRangeLabelDiv.textContent = 'Min Range: 0.0 m';
+            // sensor1MinRangeLabelDiv.style.marginTop = '-1em';
+            sensor1MinRangeLabel = new CSS2DObject(sensor1MinRangeLabelDiv);
+            sensor1MinRangeLabel.position.set(1, 1, 1);
+            scene.add(sensor1MinRangeLabel);
 
-            const maxRangeLabelDiv = document.createElement('div');
-            maxRangeLabelDiv.className = 'label';
-            maxRangeLabelDiv.textContent = 'Max Range: 0.0 m';
-            // maxRangeLabelDiv.style.marginTop = '-1em';
-            maxRangeLabel = new CSS2DObject(maxRangeLabelDiv);
-            maxRangeLabel.position.set(2, 2, 2);
-            scene.add(maxRangeLabel);
+            const sensor1MaxRangeLabelDiv = document.createElement('div');
+            sensor1MaxRangeLabelDiv.classList.add('label', 'sensor1');
+            sensor1MaxRangeLabelDiv.textContent = 'Max Range: 0.0 m';
+            // sensor1MaxRangeLabelDiv.style.marginTop = '-1em';
+            sensor1MaxRangeLabel = new CSS2DObject(sensor1MaxRangeLabelDiv);
+            sensor1MaxRangeLabel.position.set(2, 2, 2);
+            scene.add(sensor1MaxRangeLabel);
+
+            const sensor2MinRangeLabelDiv = document.createElement('div');
+            sensor2MinRangeLabelDiv.classList.add('label', 'sensor2');
+            sensor2MinRangeLabelDiv.textContent = 'Min Range: 0.0 m';
+            // sensor2MinRangeLabelDiv.style.marginTop = '-1em';
+            sensor2MinRangeLabel = new CSS2DObject(sensor2MinRangeLabelDiv);
+            sensor2MinRangeLabel.position.set(1, 1, 1);
+            scene.add(sensor2MinRangeLabel);
+            sensor2MinRangeLabel.visible = false;
+
+            const sensor2MaxRangeLabelDiv = document.createElement('div');
+            sensor2MaxRangeLabelDiv.classList.add('label', 'sensor2');
+            sensor2MaxRangeLabelDiv.textContent = 'Max Range: 0.0 m';
+            // sensor2MaxRangeLabelDiv.style.marginTop = '-1em';
+            sensor2MaxRangeLabel = new CSS2DObject(sensor2MaxRangeLabelDiv);
+            sensor2MaxRangeLabel.position.set(2, 2, 2);
+            scene.add(sensor2MaxRangeLabel);
+            sensor2MaxRangeLabel.visible = false;
 
             render();
 
@@ -199,8 +230,10 @@
         function render() {
             // console.log(performance.now());
 
-            sensor.updateProjectionMatrix();
-            camHelper.update();
+            sensor1.updateProjectionMatrix();
+            sensorHelper1.update();
+            sensor2.updateProjectionMatrix();
+            sensorHelper2.update();
             updateRangeTextLabels();
 
             renderer.render(scene, activeCamera);
@@ -209,20 +242,52 @@
         }
 
         function updateRangeTextLabels() {
-            const near = camHelper.pointMap['c'][0];
-            const coords = camHelper.geometry.getAttribute('position');
-            // console.log(`Min: ${-coords.getZ(near)}, ${coords.getY(near)}, ${coords.getX(near)}`);
 
-            // Small adjustment to X coordinate so it will definitely be inside
-            // the camera frustum and render when viewing through the camera.
-            minRangeLabel.position.set(-coords.getZ(near) + 0.01, coords.getY(near) + 2, coords.getX(near));
-            minRangeLabel.element.textContent = `Min Range: ${sensor.near.toFixed(1)} m.`;
-            const far = camHelper.pointMap['t'][0];
+            // NOTE: Small +0.01/-0.02 adjustments to X coordinate are to ensure
+            // the label is inside the camera frustum and can render when
+            // viewing through the camera (though we hide min-range labels when
+            // viewing through the camera).
 
-            // Small adjustment to X coordinate so it will definitely be inside
-            // the camera frustum and render when viewing through the camera.
-            maxRangeLabel.position.set(-coords.getZ(far) - 0.01, coords.getY(far) + 2, coords.getX(far));
-            maxRangeLabel.element.textContent = `Max Range: ${sensor.far.toFixed(1)} m.`;
+            // Sensor 1
+            const sensor1Coords = sensorHelper1.geometry.getAttribute('position');
+            // console.log(`Min: ${-coords.getZ(sensor1Near)}, ${coords.getY(sensor1Near)}, ${coords.getX(sensor1Near)}`);
+
+            const sensor1Near = sensorHelper1.pointMap['c'][0];
+            sensor1MinRangeLabel.position.set(-sensor1Coords.getZ(sensor1Near) + 0.01, sensor1Coords.getY(sensor1Near) + 2, sensor1Coords.getX(sensor1Near));
+            sensor1MinRangeLabel.element.textContent = `Min Range: ${sensor1.near.toFixed(1)} m.`;
+
+            const sensor1Far = sensorHelper1.pointMap['t'][0];
+            sensor1MaxRangeLabel.position.set(-sensor1Coords.getZ(sensor1Far) - 0.01, sensor1Coords.getY(sensor1Far) + 2, sensor1Coords.getX(sensor1Far));
+            sensor1MaxRangeLabel.element.textContent = `Max Range: ${sensor1.far.toFixed(1)} m.`;
+
+            // Sensor 2
+            const sensor2Coords = sensorHelper2.geometry.getAttribute('position');
+
+            const sensor2Near = sensorHelper2.pointMap['c'][0];
+            sensor2MinRangeLabel.position.set(-sensor2Coords.getZ(sensor2Near) + 0.01, sensor2Coords.getY(sensor2Near) + 2, sensor2Coords.getX(sensor2Near));
+            sensor2MinRangeLabel.element.textContent = `Min Range: ${sensor2.near.toFixed(1)} m.`;
+
+            const sensor2Far = sensorHelper1.pointMap['t'][0];
+            sensor2MaxRangeLabel.position.set(-sensor2Coords.getZ(sensor2Far) - 0.01, sensor2Coords.getY(sensor2Far) + 2, sensor2Coords.getX(sensor2Far));
+            sensor2MaxRangeLabel.element.textContent = `Max Range: ${sensor2.far.toFixed(1)} m.`;
+
+            if (activeCamera == sensor1) {
+                sensor1MinRangeLabel.visible = false;
+                sensor1MaxRangeLabel.element.style.marginTop = "2em";
+                sensor1MaxRangeLabel.element.style.marginLeft = "-6em";
+                sensor2MinRangeLabel.visible = false;
+                sensor2MaxRangeLabel.element.style.marginTop = "4em";
+                sensor2MaxRangeLabel.element.style.marginLeft = "-6em";
+            }
+            else {
+                /* matches style in main.css */
+                sensor1MinRangeLabel.visible = true;
+                sensor1MaxRangeLabel.element.style.marginTop = "";
+                sensor1MaxRangeLabel.element.style.marginLeft = "";
+                sensor2MinRangeLabel.visible = sensor2.shouldBeVisible;
+                sensor2MaxRangeLabel.element.style.marginTop = "";
+                sensor2MaxRangeLabel.element.style.marginLeft = "";
+            }
         }
 
         function dtr(d) {
@@ -274,11 +339,12 @@
             gui = new GUI();
 
             const params = {
-                "min range": sensor.near,
-                "max range": sensor.far,
-                "vertical fov": sensor.fov,
-                "aspect ratio": sensor.aspect,
-                "sensor": "rs1",
+                "min range": sensor1.near,
+                "max range": sensor1.far,
+                "vertical fov": sensor1.fov,
+                "aspect ratio": sensor1.aspect,
+                "sensor1 (yellow)": "rs1",
+                "sensor2 (cyan)": "rs1",
                 "view from camera": false,
                 "show props": true,
                 "prop dist (m.)": 8,
@@ -286,9 +352,9 @@
                 "grid size (m.)": 1,
             };
 
-            sensorController = gui.add(params, 'sensor', Object.keys(sensors)).onChange(function (val) {
+            sensor1Controller = gui.add(params, 'sensor1 (yellow)', Object.keys(sensors)).onChange(function (val) {
 
-                console.log(`sensor=${val}`);
+                console.log(`sensor1=${val}`);
                 const params = sensors[val];
 
                 _preventExtraRenders = true;
@@ -300,6 +366,37 @@
                 requestAnimationFrame(render);
                 _preventExtraRenders = false;
 
+            });
+
+            sensor2Controller = gui.add(params, 'sensor2 (cyan)', ['None', ...Object.keys(sensors)]).onChange(function (val) {
+
+                if (val === 'None') {
+                    sensor2.shouldBeVisible = false;
+                    sensor2.visible = false;
+                    sensorHelper2.visible = false;
+                    sensor2MinRangeLabel.visible = false;
+                    sensor2MaxRangeLabel.visible = false;
+                    requestAnimationFrame(render);
+                }
+                else {
+                    sensor2.shouldBeVisible = true;
+                    sensor2.visible = true;
+                    sensorHelper2.visible = true;
+                    sensor2MinRangeLabel.visible = true;
+                    sensor2MaxRangeLabel.visible = true;
+
+                    console.log(`sensor2=${val}`);
+                    const params = sensors[val];
+
+                    _preventExtraRenders = true;
+                    sensor2.near = params["minRange"];
+                    sensor2.far = params["maxRange"];
+                    sensor2.fov = params["vertFov"];
+                    sensor2.aspect = aspectFromFov(params["horizFov"], params["vertFov"]);
+                    requestAnimationFrame(render);
+                    _preventExtraRenders = false;
+
+                }
             });
 
             checkerboardDistanceController = gui.add(params, 'board dist (m.)', 0.1, 30.0, 0.1).onChange(function (val) {
@@ -325,41 +422,43 @@
 
             });
 
-            const folder = gui.addFolder("Advanced");
+            const sensor1Folder = gui.addFolder("Advanced Sensor1 Controls");
 
-            nearController = folder.add(params, 'min range', 0.1, maxNear(sensor.far), 0.1).onChange(function (val) {
+            nearController = sensor1Folder.add(params, 'min range', 0.1, maxNear(sensor1.far), 0.1).onChange(function (val) {
 
-                sensor.near = val;
+                sensor1.near = val;
                 farController.min(val + 1);
                 farController.updateDisplay();
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
-            farController = folder.add(params, 'max range', sensor.near + 1, 40, 0.1).onChange(function (val) {
+            farController = sensor1Folder.add(params, 'max range', sensor1.near + 1, 40, 0.1).onChange(function (val) {
 
-                sensor.far = val;
+                sensor1.far = val;
                 nearController.max(maxNear(val));
                 nearController.updateDisplay();
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
-            fovController = folder.add(params, 'vertical fov', 10, 179).onChange(function (val) {
+            fovController = sensor1Folder.add(params, 'vertical fov', 10, 179).onChange(function (val) {
 
-                sensor.fov = val;
+                sensor1.fov = val;
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
-            aspectController = folder.add(params, 'aspect ratio', 0.4, 5.0).onChange(function (val) {
+            aspectController = sensor1Folder.add(params, 'aspect ratio', 0.4, 5.0).onChange(function (val) {
 
-                sensor.aspect = val;
+                sensor1.aspect = val;
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
-            propDistanceController = folder.add(params, 'prop dist (m.)', 0, 30.0, 0.1).onChange(function (val) {
+            const sceneFolder = gui.addFolder("Advanced Scene Controls");
+
+            propDistanceController = sceneFolder.add(params, 'prop dist (m.)', 0, 30.0, 0.1).onChange(function (val) {
 
                 props.forEach(function (p) {
                     p.position.set(val, 1, 2);
@@ -368,7 +467,7 @@
 
             });
 
-            folder.add(params, 'show props').onChange(function (val) {
+            sceneFolder.add(params, 'show props').onChange(function (val) {
 
                 props.forEach(function (p) {
                     p.visible = val;
@@ -377,20 +476,13 @@
 
             });
 
-            folder.add(params, 'view from camera').onChange(function (val) {
+            sceneFolder.add(params, 'view from camera').onChange(function (val) {
 
                 if (val) {
-                    activeCamera = sensor;
-                    minRangeLabel.visible = false;
-                    maxRangeLabel.element.style.marginTop = "2em";
-                    maxRangeLabel.element.style.marginLeft = "-5.5em";
+                    activeCamera = sensor1;
                 }
                 else {
                     activeCamera = camera;
-                    /* matches style in main.css */
-                    minRangeLabel.visible = true;
-                    maxRangeLabel.element.style.marginTop = "";
-                    maxRangeLabel.element.style.marginLeft = "";
                 }
                 requestAnimationFrame(render);
 
@@ -404,7 +496,8 @@
 
         buildGui();
 
-        sensorController.setValue("Intel RealSense D415");
+        sensor1Controller.setValue("Intel RealSense D415");
+        sensor2Controller.setValue("None");
         // Setting sensor triggers a render already.
         // render();
 

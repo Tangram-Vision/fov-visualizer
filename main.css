@@ -114,7 +114,8 @@ body { overflow: hidden; }
 
 /* datgui style overrides */
 .dg.a, .dg.a .close-button {
-    width: 300px !important;
+    width: 100% !important;
+    max-width: 400px;
     margin-right: 0px !important;
 }
 
@@ -130,6 +131,19 @@ body { overflow: hidden; }
     font-family: sans-serif;
     padding: 2px;
     background: rgba( 0, 0, 0, .6 );
+}
+.label.sensor1 {
+    color: #FF0;
     /* offset so label isn't directly on top of its position in scene */
     margin-top: 5em;
+}
+.label.sensor2 {
+    color: #0FF;
+    /* offset so label isn't directly on top of its position in scene */
+    margin-top: 7em;
+}
+
+
+.dg .c select {
+    width: calc(100% - 4px);
 }
