@@ -33,13 +33,14 @@
 
         let spotLight, lightHelper, shadowCameraHelper;
         let cam, camHelper;
+        let checkerboardTexture, gridHelper, checkerboard;
 
         let _preventExtraRenders = false;
 
         let props = [];
 
         let gui;
-        let farController, nearController, sensorController, fovController, aspectController;
+        let farController, nearController, sensorController, fovController, aspectController, checkerboardDistanceController, gridSizeController;
 
         function init() {
 
@@ -67,6 +68,7 @@
             cam.far = 10;
             scene.add(cam);
 
+            /*
             const size = 10;
             const divisions = 10;
             for (let row = 0; row < 3; row++) {
@@ -76,6 +78,9 @@
                     scene.add(gridHelper);
                 }
             }
+            */
+            gridHelper = new THREE.GridHelper(40, 40, new THREE.Color(0xffffff), new THREE.Color(0x444444));
+            scene.add(gridHelper);
 
             // const polarGridHelper = new THREE.PolarGridHelper(200, 16, 8, 64, 0x0000ff, 0x808080);
             // polarGridHelper.position.y = - 150;
@@ -101,6 +106,20 @@
 
             camHelper = new CameraHelperArc(cam);
             scene.add(camHelper);
+
+
+            const geometry = new THREE.PlaneGeometry(100, 100, 1, 1);
+            const textureLoader = new THREE.TextureLoader();
+            checkerboardTexture = textureLoader.load("assets/checkerboard.png");
+
+            checkerboardTexture.wrapS = checkerboardTexture.wrapT = THREE.RepeatWrapping;
+            checkerboardTexture.repeat.set(50, 50);
+            checkerboardTexture.magFilter = THREE.NearestFilter;
+            const meshMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, map: checkerboardTexture });
+            checkerboard = new THREE.Mesh(geometry, meshMaterial);
+            checkerboard.rotateY(-Math.PI / 2);
+            checkerboard.position.set(10, 0, 0);
+            scene.add(checkerboard);
 
 
             // const group = new THREE.Group();
@@ -213,9 +232,11 @@
                 "max range": cam.far,
                 "vertical fov": cam.fov,
                 "aspect ratio": cam.aspect,
-                sensor: "rs1",
+                "sensor": "rs1",
                 "view from camera": false,
                 "show props": true,
+                "board dist (m.)": 10,
+                "grid size (m.)": 1,
             };
 
             sensorController = gui.add(params, 'sensor', Object.keys(sensors)).onChange(function (val) {
@@ -264,6 +285,28 @@
             aspectController = folder.add(params, 'aspect ratio', 0.4, 5.0).onChange(function (val) {
 
                 cam.aspect = val;
+                if (!_preventExtraRenders) requestAnimationFrame(render);
+
+            });
+
+            checkerboardDistanceController = folder.add(params, 'board dist (m.)', 0.1, 50.0, 0.1).onChange(function (val) {
+
+                checkerboard.position.set(val, 0, 0);
+                if (!_preventExtraRenders) requestAnimationFrame(render);
+
+            });
+
+            gridSizeController = folder.add(params, 'grid size (m.)', 0.01, 2, 0.01).onChange(function (val) {
+
+                // Texture is 2x2 in pixels.
+                // To have a 1m grid size (the plane is 100m square), the texture must be scaled by 100m/1m/2.
+                const scalar = 100 / val / 2;
+                checkerboardTexture.repeat.set(scalar, scalar);
+
+                // Remove and re-create the gridHelper with the new grid size.
+                scene.remove(gridHelper);
+                gridHelper = new THREE.GridHelper(40, 40 / val, new THREE.Color(0xffffff), new THREE.Color(0x444444));
+                scene.add(gridHelper);
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
