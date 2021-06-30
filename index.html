@@ -40,7 +40,7 @@
         let props = [];
 
         let gui;
-        let farController, nearController, sensorController, fovController, aspectController, checkerboardDistanceController, gridSizeController;
+        let farController, nearController, sensorController, fovController, aspectController, propDistanceController, checkerboardDistanceController, gridSizeController;
 
         function init() {
 
@@ -80,6 +80,7 @@
             }
             */
             gridHelper = new THREE.GridHelper(40, 40, new THREE.Color(0xffffff), new THREE.Color(0x444444));
+            gridHelper.position.set(10, 0, 0);
             scene.add(gridHelper);
 
             // const polarGridHelper = new THREE.PolarGridHelper(200, 16, 8, 64, 0x0000ff, 0x808080);
@@ -108,18 +109,19 @@
             scene.add(camHelper);
 
 
-            const geometry = new THREE.PlaneGeometry(100, 100, 1, 1);
+            const geometry = new THREE.PlaneGeometry(40, 40, 1, 1);
             const textureLoader = new THREE.TextureLoader();
-            checkerboardTexture = textureLoader.load("assets/checkerboard.png");
-
-            checkerboardTexture.wrapS = checkerboardTexture.wrapT = THREE.RepeatWrapping;
-            checkerboardTexture.repeat.set(50, 50);
-            checkerboardTexture.magFilter = THREE.NearestFilter;
-            const meshMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, map: checkerboardTexture });
-            checkerboard = new THREE.Mesh(geometry, meshMaterial);
-            checkerboard.rotateY(-Math.PI / 2);
-            checkerboard.position.set(10, 0, 0);
-            scene.add(checkerboard);
+            checkerboardTexture = textureLoader.load("assets/checkerboard.png", function (texture) {
+                checkerboardTexture.wrapS = checkerboardTexture.wrapT = THREE.RepeatWrapping;
+                checkerboardTexture.repeat.set(20, 20);
+                checkerboardTexture.magFilter = THREE.NearestFilter;
+                const meshMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, map: checkerboardTexture });
+                checkerboard = new THREE.Mesh(geometry, meshMaterial);
+                checkerboard.rotateY(-Math.PI / 2);
+                checkerboard.position.set(10, 0, 0);
+                scene.add(checkerboard);
+                render();
+            });
 
 
             // const group = new THREE.Group();
@@ -235,6 +237,7 @@
                 "sensor": "rs1",
                 "view from camera": false,
                 "show props": true,
+                "prop dist (m.)": 8,
                 "board dist (m.)": 10,
                 "grid size (m.)": 1,
             };
@@ -252,6 +255,29 @@
                 aspectController.setValue(aspect);
                 requestAnimationFrame(render);
                 _preventExtraRenders = false;
+
+            });
+
+            checkerboardDistanceController = gui.add(params, 'board dist (m.)', 0.1, 30.0, 0.1).onChange(function (val) {
+
+                checkerboard.position.set(val, 0, 0);
+                if (!_preventExtraRenders) requestAnimationFrame(render);
+
+            });
+
+            gridSizeController = gui.add(params, 'grid size (m.)', 0.01, 2, 0.01).onChange(function (val) {
+
+                // Texture is 2x2 in pixels.
+                // To have a 1m grid size (the plane is 40m square), the texture must be scaled by 40m/1m/2.
+                const scalar = 40 / val / 2;
+                checkerboardTexture.repeat.set(scalar, scalar);
+
+                // Remove and re-create the gridHelper with the new grid size.
+                scene.remove(gridHelper);
+                gridHelper = new THREE.GridHelper(40, 40 / val, new THREE.Color(0xffffff), new THREE.Color(0x444444));
+                gridHelper.position.set(10, 0, 0);
+                scene.add(gridHelper);
+                if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
@@ -289,25 +315,21 @@
 
             });
 
-            checkerboardDistanceController = folder.add(params, 'board dist (m.)', 0.1, 50.0, 0.1).onChange(function (val) {
+            propDistanceController = folder.add(params, 'prop dist (m.)', 0, 30.0, 0.1).onChange(function (val) {
 
-                checkerboard.position.set(val, 0, 0);
+                props.forEach(function (p) {
+                    p.position.set(val, 1, 2);
+                })
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
-            gridSizeController = folder.add(params, 'grid size (m.)', 0.01, 2, 0.01).onChange(function (val) {
+            folder.add(params, 'show props').onChange(function (val) {
 
-                // Texture is 2x2 in pixels.
-                // To have a 1m grid size (the plane is 100m square), the texture must be scaled by 100m/1m/2.
-                const scalar = 100 / val / 2;
-                checkerboardTexture.repeat.set(scalar, scalar);
-
-                // Remove and re-create the gridHelper with the new grid size.
-                scene.remove(gridHelper);
-                gridHelper = new THREE.GridHelper(40, 40 / val, new THREE.Color(0xffffff), new THREE.Color(0x444444));
-                scene.add(gridHelper);
-                if (!_preventExtraRenders) requestAnimationFrame(render);
+                props.forEach(function (p) {
+                    p.visible = val;
+                })
+                requestAnimationFrame(render);
 
             });
 
@@ -319,15 +341,6 @@
                 else {
                     activeCamera = camera;
                 }
-                requestAnimationFrame(render);
-
-            });
-
-            folder.add(params, 'show props').onChange(function (val) {
-
-                props.forEach(function (p) {
-                    p.visible = val;
-                })
                 requestAnimationFrame(render);
 
             });
