@@ -33,7 +33,7 @@
         let activeCamera;
 
         let spotLight, lightHelper, shadowCameraHelper;
-        let cam, camHelper;
+        let sensor, camHelper;
         let checkerboardTexture, gridHelper, checkerboard;
 
         let minRangeLabel, maxRangeLabel;
@@ -69,14 +69,13 @@
             camera.position.set(-4, 3, -3);
             const lookAtTarget = new THREE.Vector3(2, 2, 0);
 
-            // TODO: rename "cam" to "sensor" or something
-            cam = new THREE.PerspectiveCamera(30, 16.0 / 9.0, 1, 1000);
-            window.cam = cam;
-            cam.position.set(0, 2, 0);
-            cam.rotateY(-Math.PI / 2);
-            cam.near = 0.5;
-            cam.far = 10;
-            scene.add(cam);
+            sensor = new THREE.PerspectiveCamera(30, 16.0 / 9.0, 1, 1000);
+            window.sensor = sensor;
+            sensor.position.set(0, 2, 0);
+            sensor.rotateY(-Math.PI / 2);
+            sensor.near = 0.5;
+            sensor.far = 10;
+            scene.add(sensor);
 
             /*
             const size = 10;
@@ -115,7 +114,7 @@
             const ambient = new THREE.AmbientLight(0xffffff, 0.1);
             scene.add(ambient);
 
-            camHelper = new CameraHelperArc(cam);
+            camHelper = new CameraHelperArc(sensor);
             scene.add(camHelper);
 
 
@@ -200,7 +199,7 @@
         function render() {
             // console.log(performance.now());
 
-            cam.updateProjectionMatrix();
+            sensor.updateProjectionMatrix();
             camHelper.update();
             updateRangeTextLabels();
 
@@ -217,13 +216,13 @@
             // Small adjustment to X coordinate so it will definitely be inside
             // the camera frustum and render when viewing through the camera.
             minRangeLabel.position.set(-coords.getZ(near) + 0.01, coords.getY(near) + 2, coords.getX(near));
-            minRangeLabel.element.textContent = `Min Range: ${cam.near.toFixed(2)} m.`;
+            minRangeLabel.element.textContent = `Min Range: ${sensor.near.toFixed(1)} m.`;
             const far = camHelper.pointMap['t'][0];
 
             // Small adjustment to X coordinate so it will definitely be inside
             // the camera frustum and render when viewing through the camera.
             maxRangeLabel.position.set(-coords.getZ(far) - 0.01, coords.getY(far) + 2, coords.getX(far));
-            maxRangeLabel.element.textContent = `Max Range: ${cam.far.toFixed(2)} m.`;
+            maxRangeLabel.element.textContent = `Max Range: ${sensor.far.toFixed(1)} m.`;
         }
 
         function dtr(d) {
@@ -275,10 +274,10 @@
             gui = new GUI();
 
             const params = {
-                "min range": cam.near,
-                "max range": cam.far,
-                "vertical fov": cam.fov,
-                "aspect ratio": cam.aspect,
+                "min range": sensor.near,
+                "max range": sensor.far,
+                "vertical fov": sensor.fov,
+                "aspect ratio": sensor.aspect,
                 "sensor": "rs1",
                 "view from camera": false,
                 "show props": true,
@@ -328,18 +327,18 @@
 
             const folder = gui.addFolder("Advanced");
 
-            nearController = folder.add(params, 'min range', 0.1, maxNear(cam.far)).onChange(function (val) {
+            nearController = folder.add(params, 'min range', 0.1, maxNear(sensor.far), 0.1).onChange(function (val) {
 
-                cam.near = val;
+                sensor.near = val;
                 farController.min(val + 1);
                 farController.updateDisplay();
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
-            farController = folder.add(params, 'max range', cam.near + 1, 40).onChange(function (val) {
+            farController = folder.add(params, 'max range', sensor.near + 1, 40, 0.1).onChange(function (val) {
 
-                cam.far = val;
+                sensor.far = val;
                 nearController.max(maxNear(val));
                 nearController.updateDisplay();
                 if (!_preventExtraRenders) requestAnimationFrame(render);
@@ -348,14 +347,14 @@
 
             fovController = folder.add(params, 'vertical fov', 10, 179).onChange(function (val) {
 
-                cam.fov = val;
+                sensor.fov = val;
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
             aspectController = folder.add(params, 'aspect ratio', 0.4, 5.0).onChange(function (val) {
 
-                cam.aspect = val;
+                sensor.aspect = val;
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
@@ -381,7 +380,7 @@
             folder.add(params, 'view from camera').onChange(function (val) {
 
                 if (val) {
-                    activeCamera = cam;
+                    activeCamera = sensor;
                     minRangeLabel.visible = false;
                     maxRangeLabel.element.style.marginTop = "2em";
                     maxRangeLabel.element.style.marginLeft = "-5.5em";
