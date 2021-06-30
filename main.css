@@ -123,3 +123,13 @@ body { overflow: hidden; }
         width: 100% !important;
     }
 }
+
+
+.label {
+    color: #FFF;
+    font-family: sans-serif;
+    padding: 2px;
+    background: rgba( 0, 0, 0, .6 );
+    /* offset so label isn't directly on top of its position in scene */
+    margin-top: 5em;
+}

@@ -23,17 +23,20 @@
         import * as THREE from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/optimized/three.js';
         window.THREE = THREE;
         import { CameraHelperArc } from './CameraHelperArc.js';
+        import { CSS2DObject, CSS2DRenderer } from './CSS2DRenderer.js';
 
         import { GUI } from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/libs/dat.gui.module.js';
 
         import { OrbitControls } from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/controls/OrbitControls.js';
 
-        let renderer, scene, camera;
+        let renderer, scene, camera, labelRenderer;
         let activeCamera;
 
         let spotLight, lightHelper, shadowCameraHelper;
         let cam, camHelper;
         let checkerboardTexture, gridHelper, checkerboard;
+
+        let minRangeLabel, maxRangeLabel;
 
         let _preventExtraRenders = false;
 
@@ -54,12 +57,19 @@
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             renderer.outputEncoding = THREE.sRGBEncoding;
 
+            labelRenderer = new CSS2DRenderer();
+            labelRenderer.setSize(window.innerWidth, window.innerHeight);
+            labelRenderer.domElement.style.position = 'absolute';
+            labelRenderer.domElement.style.top = '0px';
+            document.body.appendChild(labelRenderer.domElement);
+
             scene = new THREE.Scene();
 
             camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(-4, 3, -3);
             const lookAtTarget = new THREE.Vector3(2, 2, 0);
 
+            // TODO: rename "cam" to "sensor" or something
             cam = new THREE.PerspectiveCamera(30, 16.0 / 9.0, 1, 1000);
             window.cam = cam;
             cam.position.set(0, 2, 0);
@@ -92,7 +102,7 @@
             axesHelper.position.set(0, 0.01, 0);
             scene.add(axesHelper);
 
-            const controls = new OrbitControls(camera, renderer.domElement);
+            const controls = new OrbitControls(camera, labelRenderer.domElement);
             controls.addEventListener('change', render);
             // controls.minDistance = 20;
             controls.maxDistance = 100;
@@ -146,15 +156,30 @@
 
             // Objects in scene
             const crate = new THREE.BoxGeometry(2, 2, 2);
-            const texture = new THREE.TextureLoader().load('assets/crate.gif',
-                function (texture) {
-                    const material2 = new THREE.MeshBasicMaterial({ map: texture });
-                    const mesh = new THREE.Mesh(crate, material2);
-                    mesh.position.set(8, 1, 2);
-                    props.push(mesh);
-                    scene.add(mesh);
-                    render();
-                });
+            const texture = new THREE.TextureLoader().load('assets/crate.gif', function (texture) {
+                const material2 = new THREE.MeshBasicMaterial({ map: texture });
+                const mesh = new THREE.Mesh(crate, material2);
+                mesh.position.set(8, 1, 2);
+                props.push(mesh);
+                scene.add(mesh);
+                render();
+            });
+
+            const minRangeLabelDiv = document.createElement('div');
+            minRangeLabelDiv.className = 'label';
+            minRangeLabelDiv.textContent = 'Min Range: 0.0 m';
+            // minRangeLabelDiv.style.marginTop = '-1em';
+            minRangeLabel = new CSS2DObject(minRangeLabelDiv);
+            minRangeLabel.position.set(1, 1, 1);
+            scene.add(minRangeLabel);
+
+            const maxRangeLabelDiv = document.createElement('div');
+            maxRangeLabelDiv.className = 'label';
+            maxRangeLabelDiv.textContent = 'Max Range: 0.0 m';
+            // maxRangeLabelDiv.style.marginTop = '-1em';
+            maxRangeLabel = new CSS2DObject(maxRangeLabelDiv);
+            maxRangeLabel.position.set(2, 2, 2);
+            scene.add(maxRangeLabel);
 
             render();
 
@@ -168,6 +193,7 @@
             camera.updateProjectionMatrix();
 
             renderer.setSize(window.innerWidth, window.innerHeight);
+            labelRenderer.setSize(window.innerWidth, window.innerHeight);
             requestAnimationFrame(render);
         }
 
@@ -176,9 +202,28 @@
 
             cam.updateProjectionMatrix();
             camHelper.update();
+            updateRangeTextLabels();
 
             renderer.render(scene, activeCamera);
+            labelRenderer.render(scene, activeCamera);
 
+        }
+
+        function updateRangeTextLabels() {
+            const near = camHelper.pointMap['c'][0];
+            const coords = camHelper.geometry.getAttribute('position');
+            // console.log(`Min: ${-coords.getZ(near)}, ${coords.getY(near)}, ${coords.getX(near)}`);
+
+            // Small adjustment to X coordinate so it will definitely be inside
+            // the camera frustum and render when viewing through the camera.
+            minRangeLabel.position.set(-coords.getZ(near) + 0.01, coords.getY(near) + 2, coords.getX(near));
+            minRangeLabel.element.textContent = `Min Range: ${cam.near.toFixed(2)} m.`;
+            const far = camHelper.pointMap['t'][0];
+
+            // Small adjustment to X coordinate so it will definitely be inside
+            // the camera frustum and render when viewing through the camera.
+            maxRangeLabel.position.set(-coords.getZ(far) - 0.01, coords.getY(far) + 2, coords.getX(far));
+            maxRangeLabel.element.textContent = `Max Range: ${cam.far.toFixed(2)} m.`;
         }
 
         function dtr(d) {
@@ -337,9 +382,16 @@
 
                 if (val) {
                     activeCamera = cam;
+                    minRangeLabel.visible = false;
+                    maxRangeLabel.element.style.marginTop = "2em";
+                    maxRangeLabel.element.style.marginLeft = "-5.5em";
                 }
                 else {
                     activeCamera = camera;
+                    /* matches style in main.css */
+                    minRangeLabel.visible = true;
+                    maxRangeLabel.element.style.marginTop = "";
+                    maxRangeLabel.element.style.marginLeft = "";
                 }
                 requestAnimationFrame(render);
 

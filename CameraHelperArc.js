@@ -1,4 +1,4 @@
-import * as THREE from 'https://cdn.skypack.dev/three';
+import * as THREE from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/optimized/three.js';
 
 const _vector = /*@__PURE__*/ new THREE.Vector3();
 const _camera = /*@__PURE__*/ new THREE.Camera();
