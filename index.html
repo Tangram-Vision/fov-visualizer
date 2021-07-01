@@ -24,6 +24,7 @@
         window.THREE = THREE;
         import { CameraHelperArc } from './CameraHelperArc.js';
         import { CSS2DObject, CSS2DRenderer } from './CSS2DRenderer.js';
+        import { GridHelperTranslucent } from './GridHelperTranslucent.js';
 
         import { GUI } from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/libs/dat.gui.module.js';
 
@@ -96,7 +97,8 @@
                 }
             }
             */
-            gridHelper = new THREE.GridHelper(40, 40, new THREE.Color(0xffffff), new THREE.Color(0x444444));
+
+            gridHelper = new GridHelperTranslucent(60, 60, new THREE.Color(0xffffff), new THREE.Color(0xffffff));
             gridHelper.position.set(10, 0, 0);
             scene.add(gridHelper);
 
@@ -415,7 +417,7 @@
 
                 // Remove and re-create the gridHelper with the new grid size.
                 scene.remove(gridHelper);
-                gridHelper = new THREE.GridHelper(60, 60 / val, new THREE.Color(0xffffff), new THREE.Color(0x444444));
+                gridHelper = new GridHelperTranslucent(60, 60 / val, new THREE.Color(0xffffff), new THREE.Color(0xffffff));
                 gridHelper.position.set(10, 0, 0);
                 scene.add(gridHelper);
                 if (!_preventExtraRenders) requestAnimationFrame(render);
