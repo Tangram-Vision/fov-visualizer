@@ -73,14 +73,14 @@
             const lookAtTarget = new THREE.Vector3(2, 2, 0);
 
             sensor1 = new THREE.PerspectiveCamera(30, 16.0 / 9.0, 1, 1000);
-            sensor1.position.set(0, 2, 0);
+            sensor1.position.set(0, 1, 0);
             sensor1.rotateY(-Math.PI / 2);
             sensor1.near = 0.5;
             sensor1.far = 10;
             scene.add(sensor1);
 
             sensor2 = new THREE.PerspectiveCamera(30, 16.0 / 9.0, 1, 1000);
-            sensor2.position.set(0, 2, 0);
+            sensor2.position.set(0, 1, 0);
             sensor2.rotateY(-Math.PI / 2);
             sensor2.near = 0.5;
             sensor2.far = 10;
@@ -357,22 +357,22 @@
             // console.log(`Min: ${-coords.getZ(sensor1Near)}, ${coords.getY(sensor1Near)}, ${coords.getX(sensor1Near)}`);
 
             const sensor1Near = sensorHelper1.pointMap['c'][0];
-            sensor1MinRangeLabel.position.set(-sensor1Coords.getZ(sensor1Near) + 0.01, sensor1Coords.getY(sensor1Near) + 2, sensor1Coords.getX(sensor1Near));
+            sensor1MinRangeLabel.position.set(-sensor1Coords.getZ(sensor1Near) + 0.01, sensor1Coords.getY(sensor1Near) + sensor1.position.y, sensor1Coords.getX(sensor1Near));
             sensor1MinRangeLabel.element.textContent = `Min Range: ${sensor1.near.toFixed(1)} m.`;
 
             const sensor1Far = sensorHelper1.pointMap['t'][0];
-            sensor1MaxRangeLabel.position.set(-sensor1Coords.getZ(sensor1Far) - 0.01, sensor1Coords.getY(sensor1Far) + 2, sensor1Coords.getX(sensor1Far));
+            sensor1MaxRangeLabel.position.set(-sensor1Coords.getZ(sensor1Far) - 0.01, sensor1Coords.getY(sensor1Far) + sensor1.position.y, sensor1Coords.getX(sensor1Far));
             sensor1MaxRangeLabel.element.textContent = `Max Range: ${sensor1.far.toFixed(1)} m.`;
 
             // Sensor 2
             const sensor2Coords = sensorHelper2.geometry.getAttribute('position');
 
             const sensor2Near = sensorHelper2.pointMap['c'][0];
-            sensor2MinRangeLabel.position.set(-sensor2Coords.getZ(sensor2Near) + 0.01, sensor2Coords.getY(sensor2Near) + 2, sensor2Coords.getX(sensor2Near));
+            sensor2MinRangeLabel.position.set(-sensor2Coords.getZ(sensor2Near) + 0.01, sensor2Coords.getY(sensor2Near) + sensor2.position.y, sensor2Coords.getX(sensor2Near));
             sensor2MinRangeLabel.element.textContent = `Min Range: ${sensor2.near.toFixed(1)} m.`;
 
             const sensor2Far = sensorHelper1.pointMap['t'][0];
-            sensor2MaxRangeLabel.position.set(-sensor2Coords.getZ(sensor2Far) - 0.01, sensor2Coords.getY(sensor2Far) + 2, sensor2Coords.getX(sensor2Far));
+            sensor2MaxRangeLabel.position.set(-sensor2Coords.getZ(sensor2Far) - 0.01, sensor2Coords.getY(sensor2Far) + sensor2.position.y, sensor2Coords.getX(sensor2Far));
             sensor2MaxRangeLabel.element.textContent = `Max Range: ${sensor2.far.toFixed(1)} m.`;
 
             if (activeCamera == sensor1) {
