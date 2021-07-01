@@ -183,6 +183,7 @@
             wallGroup.add(gridHelper);
             wallGroup.position.set(10, 30, 0);
             scene.add(wallGroup);
+            window.wallGroup = wallGroup;
 
             // // "checkerboard" grid wall
             // checkerboard = new GridHelperTranslucent(60, 60, new THREE.Color(0xffffff), new THREE.Color(0xffffff));
@@ -446,8 +447,8 @@
                 "sensor2 (cyan)": "rs1",
                 "view from camera": false,
                 "show props": true,
-                "prop dist (m.)": 8,
-                "wall dist (m.)": 10,
+                "prop dist (m.)": propGroup.position.x,
+                "wall dist (m.)": wallGroup.position.x,
                 "grid size (m.)": 1,
             };
 
