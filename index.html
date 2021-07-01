@@ -131,11 +131,11 @@
             scene.add(sensorHelper2);
 
 
-            const geometry = new THREE.PlaneGeometry(40, 40, 1, 1);
+            const geometry = new THREE.PlaneGeometry(60, 60, 1, 1);
             const textureLoader = new THREE.TextureLoader();
             checkerboardTexture = textureLoader.load("assets/checkerboard.png", function (texture) {
                 checkerboardTexture.wrapS = checkerboardTexture.wrapT = THREE.RepeatWrapping;
-                checkerboardTexture.repeat.set(20, 20);
+                checkerboardTexture.repeat.set(60 / 2, 60 / 2);
                 checkerboardTexture.magFilter = THREE.NearestFilter;
                 const meshMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, map: checkerboardTexture });
                 checkerboard = new THREE.Mesh(geometry, meshMaterial);
@@ -409,13 +409,13 @@
             gridSizeController = gui.add(params, 'grid size (m.)', 0.01, 2, 0.01).onChange(function (val) {
 
                 // Texture is 2x2 in pixels.
-                // To have a 1m grid size (the plane is 40m square), the texture must be scaled by 40m/1m/2.
-                const scalar = 40 / val / 2;
+                // To have a 1m grid size (the plane is 60m square), the texture must be scaled by 60m/1m/2.
+                const scalar = 60 / val / 2;
                 checkerboardTexture.repeat.set(scalar, scalar);
 
                 // Remove and re-create the gridHelper with the new grid size.
                 scene.remove(gridHelper);
-                gridHelper = new THREE.GridHelper(40, 40 / val, new THREE.Color(0xffffff), new THREE.Color(0x444444));
+                gridHelper = new THREE.GridHelper(60, 60 / val, new THREE.Color(0xffffff), new THREE.Color(0x444444));
                 gridHelper.position.set(10, 0, 0);
                 scene.add(gridHelper);
                 if (!_preventExtraRenders) requestAnimationFrame(render);
