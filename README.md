@@ -52,8 +52,8 @@ changed files from this repo to S3.
 The deployment command will look like:
 
 ```
-TF_VAR_fov_visualizer_repo_filepath=~/repos/fov-visualizer terraform plan
-TF_VAR_fov_visualizer_repo_filepath=~/repos/fov-visualizer terraform apply
+TF_VAR_fov_visualizer_repo_filepath=../../fov-visualizer terraform plan
+TF_VAR_fov_visualizer_repo_filepath=../../fov-visualizer terraform apply
 ```
 
 For other ways to supply the variable, see the terraform folder's README.

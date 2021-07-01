@@ -1,4 +1,4 @@
-import * as THREE from 'https://cdn.skypack.dev/three';
+import * as THREE from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/optimized/three.js';
 
 const _vector = /*@__PURE__*/ new THREE.Vector3();
 const _camera = /*@__PURE__*/ new THREE.Camera();
@@ -69,7 +69,7 @@ const _curve = /*@__PURE__*/ new THREE.EllipseCurve();
 
 class CameraHelperArc extends THREE.LineSegments {
 
-    constructor(camera) {
+    constructor(camera, themeColors) {
 
         const geometry = new THREE.BufferGeometry();
         const material = new THREE.LineBasicMaterial({ color: 0xffffff, vertexColors: true, toneMapped: false });
@@ -83,11 +83,20 @@ class CameraHelperArc extends THREE.LineSegments {
 
         // colors
 
-        const colorFrustum = new THREE.Color(0xffaa00);
-        const colorCone = new THREE.Color(0xff0000);
-        const colorUp = new THREE.Color(0x00aaff);
-        const colorTarget = new THREE.Color(0xffffff);
-        const colorCross = new THREE.Color(0x333333);
+        let colorFrustum, colorCone, colorTarget, colorCross;
+        if (themeColors) {
+            colorFrustum = new THREE.Color(themeColors[0]);
+            colorCone = new THREE.Color(themeColors[1]);
+            colorTarget = new THREE.Color(themeColors[2]);
+            colorCross = new THREE.Color(themeColors[3]);
+        }
+        else {
+            colorFrustum = new THREE.Color(0xffaa00);
+            colorCone = new THREE.Color(0xff0000);
+            // colorUp = new THREE.Color(0x00aaff);
+            colorTarget = new THREE.Color(0xffffff);
+            colorCross = new THREE.Color(0x333333);
+        }
 
         // near
 
@@ -119,9 +128,9 @@ class CameraHelperArc extends THREE.LineSegments {
 
         // up
 
-        addLine('u1', 'u2', colorUp);
-        addLine('u2', 'u3', colorUp);
-        addLine('u3', 'u1', colorUp);
+        // addLine('u1', 'u2', colorUp);
+        // addLine('u2', 'u3', colorUp);
+        // addLine('u3', 'u1', colorUp);
 
         // target
 
@@ -251,9 +260,9 @@ class CameraHelperArc extends THREE.LineSegments {
 
         // up
 
-        setPoint('u1', pointMap, geometry, _camera, w * 0.7, h * 1.1, - 1);
-        setPoint('u2', pointMap, geometry, _camera, - w * 0.7, h * 1.1, - 1);
-        setPoint('u3', pointMap, geometry, _camera, 0, h * 2, - 1);
+        // setPoint('u1', pointMap, geometry, _camera, w * 0.7, h * 1.1, - 1);
+        // setPoint('u2', pointMap, geometry, _camera, - w * 0.7, h * 1.1, - 1);
+        // setPoint('u3', pointMap, geometry, _camera, 0, h * 2, - 1);
 
         // cross
 
