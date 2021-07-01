@@ -183,7 +183,6 @@
             wallGroup.add(gridHelper);
             wallGroup.position.set(10, 30, 0);
             scene.add(wallGroup);
-            window.wallGroup = wallGroup;
 
             // // "checkerboard" grid wall
             // checkerboard = new GridHelperTranslucent(60, 60, new THREE.Color(0xffffff), new THREE.Color(0xffffff));
@@ -221,6 +220,9 @@
 
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
+                // Even if object origin is outside camera frustum, parts of the
+                // model may be visible, so just force it to always render.
+                mesh.frustumCulled = false;
                 propGroup.add(mesh);
                 render();
             });
@@ -228,7 +230,6 @@
             // FBX character model
             // const fbxLoader = new FBXLoader();
             // fbxLoader.load('assets/ybot.fbx', function (object) {
-            //     window.fbxModel = object;
             //     // Scale model to height of nearly 2 m.
             //     object.scale.set(0.011, 0.011, 0.011);
             //     object.position.set(0, 0, -2);
@@ -250,7 +251,7 @@
             const gltfLoader = new GLTFLoader();
             gltfLoader.load('assets/xbot.glb', function (gltf) {
                 const object = gltf.scene;
-                object.position.set(0, 0, -2);
+                object.position.set(0, 0, -1);
                 object.rotateY(-Math.PI / 2);
                 object.traverse(function (child) {
 
@@ -258,6 +259,9 @@
 
                         child.castShadow = true;
                         child.receiveShadow = true;
+                        // Even if object origin is outside camera frustum, parts of the
+                        // model may be visible, so just force it to always render.
+                        child.frustumCulled = false;
 
                     }
 
