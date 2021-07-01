@@ -128,7 +128,7 @@
             scene.add(ambient);
 
             propGroup = new THREE.Group();
-            propGroup.position.set(7, 0, 0);
+            propGroup.position.set(8, 0, 0);
             scene.add(propGroup);
 
             const sensor1Colors = [0xffaa00, 0xff0000, 0xffffff, 0x333333];
@@ -216,7 +216,7 @@
             textureLoader.load('assets/crate.gif', function (texture) {
                 const material2 = new THREE.MeshPhongMaterial({ map: texture });
                 const mesh = new THREE.Mesh(crate, material2);
-                mesh.position.set(0, 0.5, 1.5);
+                mesh.position.set(0.5, 0.5, 1.5);
 
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
