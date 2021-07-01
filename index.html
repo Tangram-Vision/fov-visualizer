@@ -37,6 +37,8 @@
         let sensor1, sensorHelper1;
         let sensor2, sensorHelper2;
         let checkerboardTexture, gridHelper, checkerboard;
+        let checkerboardTexture2, checkerboard2;
+        let wallGroup;
 
         let sensor1MinRangeLabel, sensor1MaxRangeLabel, sensor2MinRangeLabel, sensor2MaxRangeLabel;
 
@@ -98,9 +100,11 @@
             }
             */
 
-            gridHelper = new GridHelperTranslucent(60, 60, new THREE.Color(0xffffff), new THREE.Color(0xffffff));
-            gridHelper.position.set(10, 0, 0);
-            scene.add(gridHelper);
+            gridHelper = new THREE.GridHelper(60, 60, new THREE.Color(0x333333), new THREE.Color(0x333333));
+            // gridHelper.position.set(10, 30, 0);
+            gridHelper.rotateZ(Math.PI / 2);
+            gridHelper.position.set(0, 0, 0);
+            // scene.add(gridHelper);
 
             // const polarGridHelper = new THREE.PolarGridHelper(200, 16, 8, 64, 0x0000ff, 0x808080);
             // polarGridHelper.position.y = - 150;
@@ -121,7 +125,7 @@
             camera.lookAt(lookAtTarget);
             activeCamera = camera;
 
-            const ambient = new THREE.AmbientLight(0xffffff, 0.2);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.1);
             scene.add(ambient);
 
             const sensor1Colors = [0xffaa00, 0xff0000, 0xffffff, 0x333333];
@@ -139,13 +143,48 @@
                 checkerboardTexture.wrapS = checkerboardTexture.wrapT = THREE.RepeatWrapping;
                 checkerboardTexture.repeat.set(60 / 2, 60 / 2);
                 checkerboardTexture.magFilter = THREE.NearestFilter;
-                const meshMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, map: checkerboardTexture });
+                const meshMaterial = new THREE.MeshPhongMaterial({ color: 0x181818, map: checkerboardTexture });
                 checkerboard = new THREE.Mesh(geometry, meshMaterial);
-                checkerboard.rotateY(-Math.PI / 2);
-                checkerboard.position.set(10, 0, 0);
+                checkerboard.rotateX(-Math.PI / 2);
+                checkerboard.rotateZ(-Math.PI / 2);
+                // Move down 0.01 m. so that wall grid always renders above the
+                // floor (avoid Z-fighting).
+                checkerboard.position.set(10, -0.01, 0);
                 scene.add(checkerboard);
                 render();
             });
+            /*
+            const geometry2 = new THREE.PlaneGeometry(60, 60, 1, 1);
+            checkerboardTexture2 = textureLoader.load("assets/checkerboard.png", function (texture) {
+                checkerboardTexture2.wrapS = checkerboardTexture2.wrapT = THREE.RepeatWrapping;
+                checkerboardTexture2.repeat.set(60 / 2, 60 / 2);
+                checkerboardTexture2.magFilter = THREE.NearestFilter;
+                const meshMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, map: checkerboardTexture2, transparent: true, opacity: 0.2, depthWrite: false });
+                checkerboard2 = new THREE.Mesh(geometry, meshMaterial);
+                checkerboard2.rotateY(-Math.PI / 2);
+                checkerboard2.position.set(10, -30, 0);
+                scene.add(checkerboard2);
+                render();
+            });
+            */
+
+            const wallGeo = new THREE.PlaneGeometry(60, 60, 1, 1);
+            const wallMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, depthWrite: false });
+            const wallMesh = new THREE.Mesh(wallGeo, wallMat);
+            wallMesh.rotateY(-Math.PI / 2);
+            // scene.add(wallMesh);
+
+            wallGroup = new THREE.Group();
+            wallGroup.add(wallMesh);
+            wallGroup.add(gridHelper);
+            wallGroup.position.set(10, 30, 0);
+            scene.add(wallGroup);
+
+            // // "checkerboard" grid wall
+            // checkerboard = new GridHelperTranslucent(60, 60, new THREE.Color(0xffffff), new THREE.Color(0xffffff));
+            // checkerboard.position.set(10, 0, 0);
+            // checkerboard.rotateZ(Math.PI / 2);
+            // scene.add(checkerboard);
 
 
             // const group = new THREE.Group();
@@ -282,7 +321,7 @@
                 sensor2MaxRangeLabel.element.style.marginLeft = "-6em";
             }
             else {
-                /* matches style in main.css */
+                /* revert to style in main.css */
                 sensor1MinRangeLabel.visible = true;
                 sensor1MaxRangeLabel.element.style.marginTop = "";
                 sensor1MaxRangeLabel.element.style.marginLeft = "";
@@ -403,7 +442,8 @@
 
             checkerboardDistanceController = gui.add(params, 'board dist (m.)', 0.1, 30.0, 0.1).onChange(function (val) {
 
-                checkerboard.position.set(val, 0, 0);
+                wallGroup.position.set(val, 30, 0);
+                // checkerboard2.position.set(val, -30, 0);
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
@@ -415,11 +455,23 @@
                 const scalar = 60 / val / 2;
                 checkerboardTexture.repeat.set(scalar, scalar);
 
+                // checkerboardTexture2.repeat.set(scalar, scalar);
+
                 // Remove and re-create the gridHelper with the new grid size.
-                scene.remove(gridHelper);
-                gridHelper = new GridHelperTranslucent(60, 60 / val, new THREE.Color(0xffffff), new THREE.Color(0xffffff));
-                gridHelper.position.set(10, 0, 0);
-                scene.add(gridHelper);
+                wallGroup.remove(gridHelper);
+                gridHelper = new THREE.GridHelper(60, 60 / val, new THREE.Color(0x333333), new THREE.Color(0x333333));
+                // gridHelper.position.set(checkerboardDistanceController.getValue(), 30, 0);
+                gridHelper.rotateZ(Math.PI / 2);
+                gridHelper.position.set(0, 0, 0);
+                wallGroup.add(gridHelper);
+
+                // scene.remove(checkerboard);
+                // checkerboard = new GridHelperTranslucent(60, 60 / val, new THREE.Color(0xffffff), new THREE.Color(0xffffff));
+                // // position doesn't reflect slider
+                // checkerboard.position.set(10, 0, 0);
+                // checkerboard.rotateZ(Math.PI / 2);
+                // scene.add(checkerboard);
+
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });

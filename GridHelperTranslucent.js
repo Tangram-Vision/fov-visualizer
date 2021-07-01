@@ -37,9 +37,7 @@ class GridHelperTranslucent extends LineSegments {
         geometry.setAttribute('position', new Float32BufferAttribute(vertices, 3));
         geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
 
-        const material = new LineBasicMaterial({ vertexColors: true, toneMapped: false });
-        material.opacity = 0.3;
-        material.transparent = true;
+        const material = new LineBasicMaterial({ vertexColors: true, toneMapped: false, transparent: true, opacity: 0.3, depthWrite: false });
 
         super(geometry, material);
 
