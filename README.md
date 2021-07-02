@@ -8,6 +8,14 @@ produce visitors and awareness for Tangram Vision.
 - Inspiration https://cs.wellesley.edu/~cs307/threejs/demos/Camera/frustum.shtml
 - Inspiration https://www.smeenk.com/webgl/kinectfovexplorer.html
 
+Human-esque model is from mixamo.com which states on the [FAQ](https://helpx.adobe.com/creative-cloud/faq/mixamo-faq.html):
+
+> You can use both characters and animations royalty free for personal, commercial, and non-profit projects including:
+> - Incorporating characters into illustrations and graphic art
+> - 3D printing characters
+> - Creating films
+> - Creating video games
+
 # Development
 
 Run a local server, such as with python:

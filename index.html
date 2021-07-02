@@ -6,6 +6,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link type="text/css" rel="stylesheet" href="main.css">
+    <link href="assets/favicon-32.png" rel="shortcut icon" type="image/x-icon" />
+    <link href="assets/favicon-256.png" rel="apple-touch-icon" />
 </head>
 
 <body>
@@ -23,7 +25,9 @@
         import * as THREE from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/optimized/three.js';
         window.THREE = THREE;
         import { CameraHelperArc } from './CameraHelperArc.js';
-        import { CSS2DObject, CSS2DRenderer } from './CSS2DRenderer.js';
+        import { CSS2DObject, CSS2DRenderer } from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/renderers/CSS2DRenderer.js';
+        import { FBXLoader } from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/loaders/FBXLoader.js';
+        import { GLTFLoader } from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/loaders/GLTFLoader.js';
 
         import { GUI } from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/libs/dat.gui.module.js';
 
@@ -37,13 +41,11 @@
         let sensor2, sensorHelper2;
         let checkerboardTexture, gridHelper, checkerboard;
         let checkerboardTexture2, checkerboard2;
-        let wallGroup;
+        let wallGroup, propGroup;
 
         let sensor1MinRangeLabel, sensor1MaxRangeLabel, sensor2MinRangeLabel, sensor2MaxRangeLabel;
 
         let _preventExtraRenders = false;
-
-        let props = [];
 
         let gui;
         let farController, nearController, sensor1Controller, sensor2Controller, fovController, aspectController, propDistanceController, checkerboardDistanceController, gridSizeController;
@@ -73,14 +75,14 @@
             const lookAtTarget = new THREE.Vector3(2, 2, 0);
 
             sensor1 = new THREE.PerspectiveCamera(30, 16.0 / 9.0, 1, 1000);
-            sensor1.position.set(0, 2, 0);
+            sensor1.position.set(0, 1, 0);
             sensor1.rotateY(-Math.PI / 2);
             sensor1.near = 0.5;
             sensor1.far = 10;
             scene.add(sensor1);
 
             sensor2 = new THREE.PerspectiveCamera(30, 16.0 / 9.0, 1, 1000);
-            sensor2.position.set(0, 2, 0);
+            sensor2.position.set(0, 1, 0);
             sensor2.rotateY(-Math.PI / 2);
             sensor2.near = 0.5;
             sensor2.far = 10;
@@ -127,6 +129,10 @@
             const ambient = new THREE.AmbientLight(0xffffff, 0.1);
             scene.add(ambient);
 
+            propGroup = new THREE.Group();
+            propGroup.position.set(8, 0, 0);
+            scene.add(propGroup);
+
             const sensor1Colors = [0xffaa00, 0xff0000, 0xffffff, 0x333333];
             const sensor2Colors = [0x00aaff, 0x0000ff, 0xffffff, 0x333333];
             sensorHelper1 = new CameraHelperArc(sensor1, sensor1Colors);
@@ -142,13 +148,14 @@
                 checkerboardTexture.wrapS = checkerboardTexture.wrapT = THREE.RepeatWrapping;
                 checkerboardTexture.repeat.set(60 / 2, 60 / 2);
                 checkerboardTexture.magFilter = THREE.NearestFilter;
-                const meshMaterial = new THREE.MeshPhongMaterial({ color: 0x181818, map: checkerboardTexture });
+                const meshMaterial = new THREE.MeshPhongMaterial({ color: 0x080808, map: checkerboardTexture, shininess: 5 });
                 checkerboard = new THREE.Mesh(geometry, meshMaterial);
                 checkerboard.rotateX(-Math.PI / 2);
                 checkerboard.rotateZ(-Math.PI / 2);
                 // Move down 0.01 m. so that wall grid always renders above the
                 // floor (avoid Z-fighting).
                 checkerboard.position.set(10, -0.01, 0);
+                checkerboard.receiveShadow = true;
                 scene.add(checkerboard);
                 render();
             });
@@ -207,16 +214,75 @@
             // scene.add(group);
 
             // Objects in scene
-            const crate = new THREE.BoxGeometry(2, 2, 2);
-            const texture = new THREE.TextureLoader().load('assets/crate.gif', function (texture) {
-                const material2 = new THREE.MeshBasicMaterial({ map: texture });
+            const crate = new THREE.BoxGeometry(1, 1, 1);
+            textureLoader.load('assets/crate.gif', function (texture) {
+                const material2 = new THREE.MeshPhongMaterial({ map: texture });
                 const mesh = new THREE.Mesh(crate, material2);
-                mesh.position.set(8, 1, 2);
-                props.push(mesh);
-                scene.add(mesh);
+                mesh.position.set(0.5, 0.5, 1.5);
+
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                // Even if object origin is outside camera frustum, parts of the
+                // model may be visible, so just force it to always render.
+                mesh.frustumCulled = false;
+                propGroup.add(mesh);
                 render();
             });
 
+            // FBX character model
+            // const fbxLoader = new FBXLoader();
+            // fbxLoader.load('assets/ybot.fbx', function (object) {
+            //     // Scale model to height of nearly 2 m.
+            //     object.scale.set(0.011, 0.011, 0.011);
+            //     object.position.set(0, 0, -2);
+            //     object.rotateY(-Math.PI / 2);
+            //     object.traverse(function (child) {
+
+            //         if (child.isMesh) {
+
+            //             child.castShadow = true;
+            //             child.receiveShadow = true;
+
+            //         }
+
+            //     });
+            //     propGroup.add(object);
+            // });
+
+            // GLTF character model
+            const gltfLoader = new GLTFLoader();
+            gltfLoader.load('assets/xbot.glb', function (gltf) {
+                const object = gltf.scene;
+                object.position.set(0, 0, -1);
+                object.rotateY(-Math.PI / 2);
+                object.traverse(function (child) {
+
+                    if (child.isMesh) {
+
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                        // Even if object origin is outside camera frustum, parts of the
+                        // model may be visible, so just force it to always render.
+                        child.frustumCulled = false;
+
+                    }
+
+                });
+                propGroup.add(object);
+                render();
+            });
+
+            // Add light so the character model isn't shaded completely flat
+            const dirLight = new THREE.DirectionalLight(0xffffff);
+            dirLight.position.set(-5, 20, 5);
+            dirLight.castShadow = true;
+            dirLight.shadow.camera.top = 30;
+            dirLight.shadow.camera.bottom = - 30;
+            dirLight.shadow.camera.left = - 30;
+            dirLight.shadow.camera.right = 30;
+            scene.add(dirLight);
+
+            // Range labels
             const sensor1MinRangeLabelDiv = document.createElement('div');
             sensor1MinRangeLabelDiv.classList.add('label', 'sensor1');
             sensor1MinRangeLabelDiv.textContent = 'Min Range: 0.0 m';
@@ -293,22 +359,22 @@
             // console.log(`Min: ${-coords.getZ(sensor1Near)}, ${coords.getY(sensor1Near)}, ${coords.getX(sensor1Near)}`);
 
             const sensor1Near = sensorHelper1.pointMap['c'][0];
-            sensor1MinRangeLabel.position.set(-sensor1Coords.getZ(sensor1Near) + 0.01, sensor1Coords.getY(sensor1Near) + 2, sensor1Coords.getX(sensor1Near));
+            sensor1MinRangeLabel.position.set(-sensor1Coords.getZ(sensor1Near) + 0.01, sensor1Coords.getY(sensor1Near) + sensor1.position.y, sensor1Coords.getX(sensor1Near));
             sensor1MinRangeLabel.element.textContent = `Min Range: ${sensor1.near.toFixed(1)} m.`;
 
             const sensor1Far = sensorHelper1.pointMap['t'][0];
-            sensor1MaxRangeLabel.position.set(-sensor1Coords.getZ(sensor1Far) - 0.01, sensor1Coords.getY(sensor1Far) + 2, sensor1Coords.getX(sensor1Far));
+            sensor1MaxRangeLabel.position.set(-sensor1Coords.getZ(sensor1Far) - 0.01, sensor1Coords.getY(sensor1Far) + sensor1.position.y, sensor1Coords.getX(sensor1Far));
             sensor1MaxRangeLabel.element.textContent = `Max Range: ${sensor1.far.toFixed(1)} m.`;
 
             // Sensor 2
             const sensor2Coords = sensorHelper2.geometry.getAttribute('position');
 
             const sensor2Near = sensorHelper2.pointMap['c'][0];
-            sensor2MinRangeLabel.position.set(-sensor2Coords.getZ(sensor2Near) + 0.01, sensor2Coords.getY(sensor2Near) + 2, sensor2Coords.getX(sensor2Near));
+            sensor2MinRangeLabel.position.set(-sensor2Coords.getZ(sensor2Near) + 0.01, sensor2Coords.getY(sensor2Near) + sensor2.position.y, sensor2Coords.getX(sensor2Near));
             sensor2MinRangeLabel.element.textContent = `Min Range: ${sensor2.near.toFixed(1)} m.`;
 
             const sensor2Far = sensorHelper1.pointMap['t'][0];
-            sensor2MaxRangeLabel.position.set(-sensor2Coords.getZ(sensor2Far) - 0.01, sensor2Coords.getY(sensor2Far) + 2, sensor2Coords.getX(sensor2Far));
+            sensor2MaxRangeLabel.position.set(-sensor2Coords.getZ(sensor2Far) - 0.01, sensor2Coords.getY(sensor2Far) + sensor2.position.y, sensor2Coords.getX(sensor2Far));
             sensor2MaxRangeLabel.element.textContent = `Max Range: ${sensor2.far.toFixed(1)} m.`;
 
             if (activeCamera == sensor1) {
@@ -387,8 +453,8 @@
                 "sensor2 (cyan)": "rs1",
                 "view from camera": false,
                 "show props": true,
-                "prop dist (m.)": 8,
-                "board dist (m.)": 10,
+                "prop dist (m.)": propGroup.position.x,
+                "wall dist (m.)": wallGroup.position.x,
                 "grid size (m.)": 1,
             };
 
@@ -439,7 +505,7 @@
                 }
             });
 
-            checkerboardDistanceController = gui.add(params, 'board dist (m.)', 0.1, 30.0, 0.1).onChange(function (val) {
+            checkerboardDistanceController = gui.add(params, 'wall dist (m.)', 0.1, 30.0, 0.1).onChange(function (val) {
 
                 wallGroup.position.set(val, 30, 0);
                 // checkerboard2.position.set(val, -30, 0);
@@ -513,18 +579,14 @@
 
             propDistanceController = sceneFolder.add(params, 'prop dist (m.)', 0, 30.0, 0.1).onChange(function (val) {
 
-                props.forEach(function (p) {
-                    p.position.set(val, 1, 2);
-                })
+                propGroup.position.set(val, 0, 0);
                 if (!_preventExtraRenders) requestAnimationFrame(render);
 
             });
 
             sceneFolder.add(params, 'show props').onChange(function (val) {
 
-                props.forEach(function (p) {
-                    p.visible = val;
-                })
+                propGroup.visible = val;
                 requestAnimationFrame(render);
 
             });
