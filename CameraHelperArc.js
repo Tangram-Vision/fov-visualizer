@@ -1,3 +1,16 @@
+// Copyright 2021 Tangram Vision
+//
+// Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+//
+// 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
 import * as THREE from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/optimized/three.js';
 
 const _vector = /*@__PURE__*/ new THREE.Vector3();
@@ -5,14 +18,6 @@ const _camera = /*@__PURE__*/ new THREE.Camera();
 const _curve = /*@__PURE__*/ new THREE.EllipseCurve();
 
 /**
- *	- shows frustum, line of sight and up of the camera
- *	- suitable for fast updates
- * 	- based on frustum visualization in lightgl.js shadowmap example
- *		http://evanw.github.com/lightgl.js/tests/shadowmap.html
- *
- *
- * # Tangram Vision notes:
- *
  * Example of regular CameraHelper behavior:
  * https://threejs.org/examples/#webgl_lights_spotlight
  *
@@ -98,20 +103,6 @@ class CameraHelperArc extends THREE.LineSegments {
             colorCross = new THREE.Color(0x333333);
         }
 
-        // near
-
-        // addLine('n1', 'n2', colorFrustum);
-        // addLine('n2', 'n4', colorFrustum);
-        // addLine('n4', 'n3', colorFrustum);
-        // addLine('n3', 'n1', colorFrustum);
-
-        // far
-
-        // addLine('f1', 'f2', colorFrustum);
-        // addLine('f2', 'f4', colorFrustum);
-        // addLine('f4', 'f3', colorFrustum);
-        // addLine('f3', 'f1', colorFrustum);
-
         // sides
 
         addLine('n1', 'f1', colorFrustum);
@@ -125,12 +116,6 @@ class CameraHelperArc extends THREE.LineSegments {
         addLine('p', 'n2', colorCone);
         addLine('p', 'n3', colorCone);
         addLine('p', 'n4', colorCone);
-
-        // up
-
-        // addLine('u1', 'u2', colorUp);
-        // addLine('u2', 'u3', colorUp);
-        // addLine('u3', 'u1', colorUp);
 
         // target
 
@@ -209,34 +194,13 @@ class CameraHelperArc extends THREE.LineSegments {
 
         const w = 1, h = 1;
 
-        // we need just camera projection matrix inverse
-        // world matrix must be identity
-        //
-        // greg: changed to copying full matrix so fov, heading, etc. are all
-        // the same for calculating coordinates of the frustum edge points and
-        // arc endpoints
-
         _camera.projectionMatrixInverse.copy(this.camera.projectionMatrixInverse);
         _camera.projectionMatrix.copy(this.camera.projectionMatrix);
-
-        // Copying world matrix matches _camera to this.camera orientation when
-        // projecting/unprojecting, otherwise I get z=-10 for unprojecting the
-        // target (middle of the far frustum plane).
-        // But, the matrix is being applied twice, I think. This involves
-        // `this.matrix = camera.matrixWorld` above.
-        // _camera.matrixWorld.copy(this.camera.matrixWorld);
-        // _camera.matrixWorldInverse.copy(this.camera.matrixWorldInverse);
 
         // center / target
 
         setPoint('c', pointMap, geometry, _camera, 0, 0, - 1);
         setPoint('t', pointMap, geometry, _camera, 0, 0, 1);
-
-        // near rectangular
-        // setPoint('n1', pointMap, geometry, _camera, - w, - h, - 1);
-        // setPoint('n2', pointMap, geometry, _camera, w, - h, - 1);
-        // setPoint('n3', pointMap, geometry, _camera, - w, h, - 1);
-        // setPoint('n4', pointMap, geometry, _camera, w, h, - 1);
 
         // near arced
         const nearZ = calcFrustumProjectedArcCoordZ("near", _camera);
@@ -245,24 +209,12 @@ class CameraHelperArc extends THREE.LineSegments {
         setPoint('n3', pointMap, geometry, _camera, - w, 0, nearZ["horizontal"]);
         setPoint('n4', pointMap, geometry, _camera, 0, -h, nearZ["vertical"]);
 
-        // far rectangular
-        // setPoint('f1', pointMap, geometry, _camera, - w, - h, 1);
-        // setPoint('f2', pointMap, geometry, _camera, w, - h, 1);
-        // setPoint('f3', pointMap, geometry, _camera, - w, h, 1);
-        // setPoint('f4', pointMap, geometry, _camera, w, h, 1);
-
         // far arced
         const farZ = calcFrustumProjectedArcCoordZ("far", _camera);
         setPoint('f1', pointMap, geometry, _camera, w, 0, farZ["horizontal"]);
         setPoint('f2', pointMap, geometry, _camera, 0, h, farZ["vertical"]);
         setPoint('f3', pointMap, geometry, _camera, - w, 0, farZ["horizontal"]);
         setPoint('f4', pointMap, geometry, _camera, 0, -h, farZ["vertical"]);
-
-        // up
-
-        // setPoint('u1', pointMap, geometry, _camera, w * 0.7, h * 1.1, - 1);
-        // setPoint('u2', pointMap, geometry, _camera, - w * 0.7, h * 1.1, - 1);
-        // setPoint('u3', pointMap, geometry, _camera, 0, h * 2, - 1);
 
         // cross
 
