@@ -63,3 +63,8 @@ Embed with an html snippet such as the below:
 ```
 
 See `embed-example.html` for an example of what embedding looks like.
+
+
+# License
+
+This repo uses the BSD-3 license: https://opensource.org/licenses/BSD-3-Clause

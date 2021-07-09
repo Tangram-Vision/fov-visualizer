@@ -98,7 +98,7 @@ a, button, input, select {
     transform: rotate(-30deg);
 }
 
-/* Needed for huge watermark div to not cause scrollbars */
+/* Prevent scrollbars for any reason */
 body { overflow: hidden; }
 
 
