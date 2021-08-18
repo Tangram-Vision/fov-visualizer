@@ -424,6 +424,7 @@ function main() {
         "StereoLabs Zed": { "horizFov": 90, "vertFov": 60, "minRange": 0.3, "maxRange": 25 },
         "StereoLabs Zed 2": { "horizFov": 110, "vertFov": 70, "minRange": 0.2, "maxRange": 20 },
         "StereoLabs Zed Mini": { "horizFov": 90, "vertFov": 60, "minRange": 0.1, "maxRange": 15 },
+        "Luxonis OAK-D": { "horizFov": 72, "vertFov": 45, "minRange": 0.2, "maxRange": 20 },
         "pmd Pico Flexx": { "horizFov": 62, "vertFov": 45, "minRange": 0.1, "maxRange": 4 },
         "pmd Pico Monstar": { "horizFov": 100, "vertFov": 85, "minRange": 0.5, "maxRange": 6 },
         "Azure Kinect (Narrow FOV Mode)": { "horizFov": 75, "vertFov": 65, "minRange": 0.5, "maxRange": 5.5 },
