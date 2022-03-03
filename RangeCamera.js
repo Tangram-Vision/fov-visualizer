@@ -5,25 +5,43 @@ import * as THREE from "https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37C
 // - Wrap around horizontally for as far as range is
 // - Create planes vertically for vfov (with some geometry)
 // - Repeat for far range
-function createWideFOVCamera(vertFovInRad, horizFovInRad, nearRange, farRange) {
-    const nearGroup = createFrustumGroup(
-        vertFovInRad,
-        horizFovInRad,
-        nearRange,
-        0xff0000,
-        0
-    );
-    const farGroup = createFrustumGroup(
-        vertFovInRad,
-        horizFovInRad,
-        farRange,
-        0xffff00,
-        nearRange
-    );
-    const cameraGroup = new THREE.Group();
-    cameraGroup.add(nearGroup);
-    cameraGroup.add(farGroup);
-    return cameraGroup;
+class RangeCamera extends THREE.Group {
+    constructor(vertFovInRad, horizFovInRad, nearRange, farRange) {
+        // We can't have a vertical FOV above 180*
+        if (vertFovInRad > Math.PI) {
+            vertFovInRad = Math.PI;
+        }
+        if (vertFovInRad < 0) {
+            vertFovInRad = 0;
+        }
+        // We can't have a horizontal FOV above 360*
+        if (horizFovInRad > 2 * Math.PI) {
+            horizFovInRad = 2 * Math.PI;
+        }
+        if (horizFovInRad < 0) {
+            horizFovInRad = 0;
+        }
+
+        const nearGroup = createFrustumGroup(
+            vertFovInRad,
+            horizFovInRad,
+            nearRange,
+            0xff0000,
+            0
+        );
+        const farGroup = createFrustumGroup(
+            vertFovInRad,
+            horizFovInRad,
+            farRange,
+            0xffff00,
+            nearRange
+        );
+        // const cameraGroup = new THREE.Group();
+        super();
+        this.add(nearGroup);
+        this.add(farGroup);
+        this.type = "RangeCamera";
+    }
 }
 
 function createFrustumGroup(
@@ -35,7 +53,7 @@ function createFrustumGroup(
 ) {
     const widthSegments = 32;
     const heightSegments = 16;
-    const phiStart = horizFovInRad / 2; // Start rotated around the axis
+    const phiStart = -horizFovInRad / 2; // Start rotated around the axis
     const phiLength = horizFovInRad;
 
     // Clipping planes for vertical FOV restriction
@@ -65,6 +83,7 @@ function createFrustumGroup(
         transparent: true,
     });
     const rangeSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    rangeSphere.rotateY(Math.PI);
 
     // frustum vfov and hfov rings
     const ringInnerRad = range - 0.02;
@@ -87,6 +106,7 @@ function createFrustumGroup(
     });
     const ringHfov = new THREE.Mesh(hRingGeometry, ringMaterial);
     ringHfov.rotateX(Math.PI / 2);
+    ringHfov.rotateZ(-horizFovInRad);
 
     const vRingThetaStart = vertFovInRad / 2;
     const vRingThetaLength = vertFovInRad;
@@ -99,8 +119,7 @@ function createFrustumGroup(
         vRingThetaLength
     );
     const ringVfov = new THREE.Mesh(vRingGeometry, ringMaterial);
-    ringVfov.rotateX(-Math.PI / 2);
-    ringVfov.rotateY(Math.PI / 2);
+    ringVfov.rotateY(Math.PI);
 
     // Lines to the outer edges of our sphere
     const lineMaterial = new THREE.LineBasicMaterial({
@@ -151,9 +170,8 @@ function createFrustumGroup(
     group.add(downLine);
     // Center on the camera position
     group.position.set(0, 1, 0);
-    group.rotateY(-Math.PI / 2);
 
     return group;
 }
 
-export { createWideFOVCamera };
+export { RangeCamera };
