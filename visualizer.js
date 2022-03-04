@@ -35,6 +35,7 @@ import {
     CSS2DRenderer
 } from "https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/renderers/CSS2DRenderer.js";
 import { CameraHelperArc } from "./CameraHelperArc.js";
+import { sensors } from "./sensors.js";
 window.THREE = THREE;
 
 function main() {
@@ -169,20 +170,19 @@ function main() {
             scene.add(checkerboard);
             render();
         });
-        /*
-                const geometry2 = new THREE.PlaneGeometry(FLOOR_WIDTH, FLOOR_WIDTH, 1, 1);
-                checkerboardTexture2 = textureLoader.load("assets/checkerboard.png", function (texture) {
-                    checkerboardTexture2.wrapS = checkerboardTexture2.wrapT = THREE.RepeatWrapping;
-                    checkerboardTexture2.repeat.set(FLOOR_WIDTH / 2, FLOOR_WIDTH / 2);
-                    checkerboardTexture2.magFilter = THREE.NearestFilter;
-                    const meshMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, map: checkerboardTexture2, transparent: true, opacity: 0.2, depthWrite: false });
-                    checkerboard2 = new THREE.Mesh(geometry, meshMaterial);
-                    checkerboard2.rotateY(-Math.PI / 2);
-                    checkerboard2.position.set(10, -30, 0);
-                    scene.add(checkerboard2);
-                    render();
-                });
-                */
+
+        // const geometry2 = new THREE.PlaneGeometry(FLOOR_WIDTH, FLOOR_WIDTH, 1, 1);
+        // checkerboardTexture2 = textureLoader.load("assets/checkerboard.png", function (texture) {
+        //     checkerboardTexture2.wrapS = checkerboardTexture2.wrapT = THREE.RepeatWrapping;
+        //     checkerboardTexture2.repeat.set(FLOOR_WIDTH / 2, FLOOR_WIDTH / 2);
+        //     checkerboardTexture2.magFilter = THREE.NearestFilter;
+        //     const meshMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, map: checkerboardTexture2, transparent: true, opacity: 0.2, depthWrite: false });
+        //     checkerboard2 = new THREE.Mesh(geometry, meshMaterial);
+        //     checkerboard2.rotateY(-Math.PI / 2);
+        //     checkerboard2.position.set(10, -30, 0);
+        //     scene.add(checkerboard2);
+        //     render();
+        // });
 
         const wallGeo = new THREE.PlaneGeometry(FLOOR_WIDTH, FLOOR_WIDTH, 1, 1);
         const wallMat = new THREE.MeshBasicMaterial({
@@ -422,38 +422,6 @@ function main() {
     function aspectFromFov(horizFov, vertFov) {
         return Math.tan(dtr(horizFov / 2)) / Math.tan(dtr(vertFov / 2));
     }
-
-    const sensors = {
-        "Intel RealSense D415": { horizFov: 65, vertFov: 40, minRange: 0.3, maxRange: 10 },
-        "Intel RealSense D435/D435i": { horizFov: 87, vertFov: 58, minRange: 0.2, maxRange: 10 },
-        "Intel RealSense D455": { horizFov: 87, vertFov: 58, minRange: 0.6, maxRange: 10 },
-        "Structure Core Mono": { horizFov: 59, vertFov: 46, minRange: 0.3, maxRange: 10 },
-        "Structure Core RGB": { horizFov: 59, vertFov: 46, minRange: 0.3, maxRange: 10 },
-        "Mynt Eye S S210": { horizFov: 95, vertFov: 50, minRange: 0.5, maxRange: 7 },
-        "Mynt Eye S S1030": { horizFov: 122, vertFov: 76, minRange: 0.5, maxRange: 18 },
-        "Mynt Eye D D1000-120": { horizFov: 105, vertFov: 58, minRange: 0.3, maxRange: 10 },
-        "Mynt Eye D D1000-50": { horizFov: 64, vertFov: 38, minRange: 0.5, maxRange: 15 },
-        "Mynt Eye D 1200": { horizFov: 59, vertFov: 35, minRange: 0.2, maxRange: 3 },
-        "Mynt Eye P": { horizFov: 75, vertFov: 40, minRange: 0.2, maxRange: 4.2 },
-        "Orbbec Astra +": { horizFov: 55, vertFov: 45, minRange: 0.6, maxRange: 8 },
-        "Orbbec Astra + S": { horizFov: 55, vertFov: 45, minRange: 0.4, maxRange: 2 },
-        "Orbbec Astra Stereo S U3": { horizFov: 68, vertFov: 45, minRange: 0.25, maxRange: 2.5 },
-        "Orbbec Astra Embedded S": { horizFov: 68, vertFov: 45, minRange: 0.25, maxRange: 1.5 },
-        "Orbbec Astra": { horizFov: 60, vertFov: 50, minRange: 0.6, maxRange: 8 },
-        "Orbbec Astra S": { horizFov: 60, vertFov: 50, minRange: 0.4, maxRange: 2 },
-        "Orbbec Astra Pro": { horizFov: 60, vertFov: 50, minRange: 0.6, maxRange: 8 },
-        "Orbbec Astra Mini": { horizFov: 60, vertFov: 50, minRange: 0.6, maxRange: 5 },
-        "Orbbec Astra Mini S": { horizFov: 60, vertFov: 50, minRange: 0.35, maxRange: 1 },
-        "Orbbec Astra Persee": { horizFov: 60, vertFov: 49, minRange: 0.6, maxRange: 8 },
-        "StereoLabs Zed": { horizFov: 90, vertFov: 60, minRange: 0.3, maxRange: 25 },
-        "StereoLabs Zed 2": { horizFov: 110, vertFov: 70, minRange: 0.2, maxRange: 20 },
-        "StereoLabs Zed Mini": { horizFov: 90, vertFov: 60, minRange: 0.1, maxRange: 15 },
-        "Luxonis OAK-D": { horizFov: 72, vertFov: 45, minRange: 0.2, maxRange: 20 },
-        "pmd Pico Flexx": { horizFov: 62, vertFov: 45, minRange: 0.1, maxRange: 4 },
-        "pmd Pico Monstar": { horizFov: 100, vertFov: 85, minRange: 0.5, maxRange: 6 },
-        "Azure Kinect (Narrow FOV Mode)": { horizFov: 75, vertFov: 65, minRange: 0.5, maxRange: 5.5 },
-        "Azure Kinect (Wide FOV Mode)": { horizFov: 120, vertFov: 120, minRange: 0.25, maxRange: 2.9 },
-    };
 
     function buildGui() {
         gui = new GUI();
