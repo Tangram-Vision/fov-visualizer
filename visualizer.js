@@ -26,17 +26,16 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-
-import * as THREE from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/optimized/three.js';
+import * as THREE from "https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/optimized/three.js";
+import { OrbitControls } from "https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/controls/OrbitControls.js";
+import { GUI } from "https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/libs/dat.gui.module.js";
+import { GLTFLoader } from "https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/loaders/GLTFLoader.js";
+import {
+    CSS2DObject,
+    CSS2DRenderer
+} from "https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/renderers/CSS2DRenderer.js";
+import { CameraHelperArc } from "./CameraHelperArc.js";
 window.THREE = THREE;
-import { CameraHelperArc } from './CameraHelperArc.js';
-import { CSS2DObject, CSS2DRenderer } from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/renderers/CSS2DRenderer.js';
-import { FBXLoader } from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/loaders/FBXLoader.js';
-import { GLTFLoader } from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/loaders/GLTFLoader.js';
-
-import { GUI } from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/libs/dat.gui.module.js';
-
-import { OrbitControls } from 'https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37CcZQlxof/mode=imports,min/unoptimized/examples/jsm/controls/OrbitControls.js';
 
 function main() {
     let renderer, scene, camera, labelRenderer;
@@ -54,12 +53,19 @@ function main() {
     let _preventExtraRenders = false;
 
     let gui;
-    let farController, nearController, sensor1Controller, sensor2Controller, fovController, aspectController, propDistanceController, checkerboardDistanceController, gridSizeController;
+    let farController,
+        nearController,
+        sensor1Controller,
+        sensor2Controller,
+        fovController,
+        aspectController,
+        propDistanceController,
+        checkerboardDistanceController,
+        gridSizeController;
 
     const FLOOR_WIDTH = 60;
 
     function init() {
-
         renderer = new THREE.WebGLRenderer();
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -72,8 +78,8 @@ function main() {
 
         labelRenderer = new CSS2DRenderer();
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
-        labelRenderer.domElement.style.position = 'absolute';
-        labelRenderer.domElement.style.top = '0px';
+        labelRenderer.domElement.style.position = "absolute";
+        labelRenderer.domElement.style.top = "0px";
         document.body.appendChild(labelRenderer.domElement);
 
         scene = new THREE.Scene();
@@ -97,7 +103,12 @@ function main() {
         sensor2.visible = false;
         scene.add(sensor2);
 
-        gridHelper = new THREE.GridHelper(FLOOR_WIDTH, FLOOR_WIDTH, new THREE.Color(0x333333), new THREE.Color(0x333333));
+        gridHelper = new THREE.GridHelper(
+            FLOOR_WIDTH,
+            FLOOR_WIDTH,
+            new THREE.Color(0x333333),
+            new THREE.Color(0x333333)
+        );
         gridHelper.rotateZ(Math.PI / 2);
         gridHelper.position.set(0, 0, 0);
 
@@ -111,7 +122,7 @@ function main() {
         // scene.add(axesHelper);
 
         const controls = new OrbitControls(camera, labelRenderer.domElement);
-        controls.addEventListener('change', render);
+        controls.addEventListener("change", render);
         // controls.minDistance = 20;
         controls.maxDistance = 100;
         controls.enablePan = true;
@@ -136,15 +147,18 @@ function main() {
         sensorHelper2.visible = false;
         scene.add(sensorHelper2);
 
-
         const geometry = new THREE.PlaneGeometry(FLOOR_WIDTH, FLOOR_WIDTH, 1, 1);
         const textureLoader = new THREE.TextureLoader();
-        checkerboardTexture = textureLoader.load("assets/checkerboard.png", function (texture) {
+        checkerboardTexture = textureLoader.load("assets/checkerboard.png", function(texture) {
             checkerboardTexture.wrapS = checkerboardTexture.wrapT = THREE.RepeatWrapping;
             // div by 2 because texture is 2x2 pixels in size
             checkerboardTexture.repeat.set(FLOOR_WIDTH / 2, FLOOR_WIDTH / 2);
             checkerboardTexture.magFilter = THREE.NearestFilter;
-            const meshMaterial = new THREE.MeshPhongMaterial({ color: 0x080808, map: checkerboardTexture, shininess: 5 });
+            const meshMaterial = new THREE.MeshPhongMaterial({
+                color: 0x080808,
+                map: checkerboardTexture,
+                shininess: 5,
+            });
             checkerboard = new THREE.Mesh(geometry, meshMaterial);
             checkerboard.rotateX(-Math.PI / 2);
             checkerboard.rotateZ(-Math.PI / 2);
@@ -156,22 +170,27 @@ function main() {
             render();
         });
         /*
-        const geometry2 = new THREE.PlaneGeometry(FLOOR_WIDTH, FLOOR_WIDTH, 1, 1);
-        checkerboardTexture2 = textureLoader.load("assets/checkerboard.png", function (texture) {
-            checkerboardTexture2.wrapS = checkerboardTexture2.wrapT = THREE.RepeatWrapping;
-            checkerboardTexture2.repeat.set(FLOOR_WIDTH / 2, FLOOR_WIDTH / 2);
-            checkerboardTexture2.magFilter = THREE.NearestFilter;
-            const meshMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, map: checkerboardTexture2, transparent: true, opacity: 0.2, depthWrite: false });
-            checkerboard2 = new THREE.Mesh(geometry, meshMaterial);
-            checkerboard2.rotateY(-Math.PI / 2);
-            checkerboard2.position.set(10, -30, 0);
-            scene.add(checkerboard2);
-            render();
-        });
-        */
+                const geometry2 = new THREE.PlaneGeometry(FLOOR_WIDTH, FLOOR_WIDTH, 1, 1);
+                checkerboardTexture2 = textureLoader.load("assets/checkerboard.png", function (texture) {
+                    checkerboardTexture2.wrapS = checkerboardTexture2.wrapT = THREE.RepeatWrapping;
+                    checkerboardTexture2.repeat.set(FLOOR_WIDTH / 2, FLOOR_WIDTH / 2);
+                    checkerboardTexture2.magFilter = THREE.NearestFilter;
+                    const meshMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, map: checkerboardTexture2, transparent: true, opacity: 0.2, depthWrite: false });
+                    checkerboard2 = new THREE.Mesh(geometry, meshMaterial);
+                    checkerboard2.rotateY(-Math.PI / 2);
+                    checkerboard2.position.set(10, -30, 0);
+                    scene.add(checkerboard2);
+                    render();
+                });
+                */
 
         const wallGeo = new THREE.PlaneGeometry(FLOOR_WIDTH, FLOOR_WIDTH, 1, 1);
-        const wallMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, depthWrite: false });
+        const wallMat = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.2,
+            depthWrite: false,
+        });
         const wallMesh = new THREE.Mesh(wallGeo, wallMat);
         wallMesh.rotateY(-Math.PI / 2);
         // scene.add(wallMesh);
@@ -181,7 +200,6 @@ function main() {
         wallGroup.add(gridHelper);
         wallGroup.position.set(10, 30, 0);
         scene.add(wallGroup);
-
 
         // const group = new THREE.Group();
         // const geometry = new THREE.PlaneGeometry(20, 10, 20, 10);
@@ -205,7 +223,7 @@ function main() {
 
         // Objects in scene
         const crate = new THREE.BoxGeometry(1, 1, 1);
-        textureLoader.load('assets/crate.gif', function (texture) {
+        textureLoader.load("assets/crate.gif", function(texture) {
             const material2 = new THREE.MeshPhongMaterial({ map: texture });
             const mesh = new THREE.Mesh(crate, material2);
             mesh.position.set(0.5, 0.5, 1.5);
@@ -241,22 +259,18 @@ function main() {
 
         // GLTF character model
         const gltfLoader = new GLTFLoader();
-        gltfLoader.load('assets/xbot.glb', function (gltf) {
+        gltfLoader.load("assets/xbot.glb", function(gltf) {
             const object = gltf.scene;
             object.position.set(0, 0, -1);
             object.rotateY(-Math.PI / 2);
-            object.traverse(function (child) {
-
+            object.traverse(function(child) {
                 if (child.isMesh) {
-
                     child.castShadow = true;
                     child.receiveShadow = true;
                     // Even if object origin is outside camera frustum, parts of the
                     // model may be visible, so just force it to always render.
                     child.frustumCulled = false;
-
                 }
-
             });
             propGroup.add(object);
             render();
@@ -267,40 +281,40 @@ function main() {
         dirLight.position.set(-5, 20, 5);
         dirLight.castShadow = true;
         dirLight.shadow.camera.top = 30;
-        dirLight.shadow.camera.bottom = - 30;
-        dirLight.shadow.camera.left = - 30;
+        dirLight.shadow.camera.bottom = -30;
+        dirLight.shadow.camera.left = -30;
         dirLight.shadow.camera.right = 30;
         scene.add(dirLight);
 
         // Range labels
-        const sensor1MinRangeLabelDiv = document.createElement('div');
-        sensor1MinRangeLabelDiv.classList.add('label', 'sensor1');
-        sensor1MinRangeLabelDiv.textContent = 'Min Range: 0.0 m';
+        const sensor1MinRangeLabelDiv = document.createElement("div");
+        sensor1MinRangeLabelDiv.classList.add("label", "sensor1");
+        sensor1MinRangeLabelDiv.textContent = "Min Range: 0.0 m";
         // sensor1MinRangeLabelDiv.style.marginTop = '-1em';
         sensor1MinRangeLabel = new CSS2DObject(sensor1MinRangeLabelDiv);
         sensor1MinRangeLabel.position.set(1, 1, 1);
         scene.add(sensor1MinRangeLabel);
 
-        const sensor1MaxRangeLabelDiv = document.createElement('div');
-        sensor1MaxRangeLabelDiv.classList.add('label', 'sensor1');
-        sensor1MaxRangeLabelDiv.textContent = 'Max Range: 0.0 m';
+        const sensor1MaxRangeLabelDiv = document.createElement("div");
+        sensor1MaxRangeLabelDiv.classList.add("label", "sensor1");
+        sensor1MaxRangeLabelDiv.textContent = "Max Range: 0.0 m";
         // sensor1MaxRangeLabelDiv.style.marginTop = '-1em';
         sensor1MaxRangeLabel = new CSS2DObject(sensor1MaxRangeLabelDiv);
         sensor1MaxRangeLabel.position.set(2, 2, 2);
         scene.add(sensor1MaxRangeLabel);
 
-        const sensor2MinRangeLabelDiv = document.createElement('div');
-        sensor2MinRangeLabelDiv.classList.add('label', 'sensor2');
-        sensor2MinRangeLabelDiv.textContent = 'Min Range: 0.0 m';
+        const sensor2MinRangeLabelDiv = document.createElement("div");
+        sensor2MinRangeLabelDiv.classList.add("label", "sensor2");
+        sensor2MinRangeLabelDiv.textContent = "Min Range: 0.0 m";
         // sensor2MinRangeLabelDiv.style.marginTop = '-1em';
         sensor2MinRangeLabel = new CSS2DObject(sensor2MinRangeLabelDiv);
         sensor2MinRangeLabel.position.set(1, 1, 1);
         scene.add(sensor2MinRangeLabel);
         sensor2MinRangeLabel.visible = false;
 
-        const sensor2MaxRangeLabelDiv = document.createElement('div');
-        sensor2MaxRangeLabelDiv.classList.add('label', 'sensor2');
-        sensor2MaxRangeLabelDiv.textContent = 'Max Range: 0.0 m';
+        const sensor2MaxRangeLabelDiv = document.createElement("div");
+        sensor2MaxRangeLabelDiv.classList.add("label", "sensor2");
+        sensor2MaxRangeLabelDiv.textContent = "Max Range: 0.0 m";
         // sensor2MaxRangeLabelDiv.style.marginTop = '-1em';
         sensor2MaxRangeLabel = new CSS2DObject(sensor2MaxRangeLabelDiv);
         sensor2MaxRangeLabel.position.set(2, 2, 2);
@@ -309,12 +323,10 @@ function main() {
 
         render();
 
-        window.addEventListener('resize', onWindowResize);
-
+        window.addEventListener("resize", onWindowResize);
     }
 
     function onWindowResize() {
-
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
 
@@ -334,37 +346,47 @@ function main() {
 
         renderer.render(scene, activeCamera);
         labelRenderer.render(scene, activeCamera);
-
     }
 
     function updateRangeTextLabels() {
-
         // NOTE: Small +/- 0.01 adjustments to X coordinate are to ensure
         // the label is inside the camera frustum and can render when
         // viewing through the camera (though we hide min-range labels when
         // viewing through the camera).
 
         // Sensor 1
-        const sensor1Coords = sensorHelper1.geometry.getAttribute('position');
+        const sensor1Coords = sensorHelper1.geometry.getAttribute("position");
         // console.log(`Min: ${-coords.getZ(sensor1Near)}, ${coords.getY(sensor1Near)}, ${coords.getX(sensor1Near)}`);
 
-        const sensor1Near = sensorHelper1.pointMap['c'][0];
-        sensor1MinRangeLabel.position.set(-sensor1Coords.getZ(sensor1Near) + 0.01, sensor1Coords.getY(sensor1Near) + sensor1.position.y, sensor1Coords.getX(sensor1Near));
+        const sensor1Near = sensorHelper1.pointMap["c"][0];
+        sensor1MinRangeLabel.position.set(-sensor1Coords.getZ(sensor1Near) + 0.01,
+            sensor1Coords.getY(sensor1Near) + sensor1.position.y,
+            sensor1Coords.getX(sensor1Near)
+        );
         sensor1MinRangeLabel.element.textContent = `Min Range: ${sensor1.near.toFixed(1)} m.`;
 
-        const sensor1Far = sensorHelper1.pointMap['t'][0];
-        sensor1MaxRangeLabel.position.set(-sensor1Coords.getZ(sensor1Far) - 0.01, sensor1Coords.getY(sensor1Far) + sensor1.position.y, sensor1Coords.getX(sensor1Far));
+        const sensor1Far = sensorHelper1.pointMap["t"][0];
+        sensor1MaxRangeLabel.position.set(-sensor1Coords.getZ(sensor1Far) - 0.01,
+            sensor1Coords.getY(sensor1Far) + sensor1.position.y,
+            sensor1Coords.getX(sensor1Far)
+        );
         sensor1MaxRangeLabel.element.textContent = `Max Range: ${sensor1.far.toFixed(1)} m.`;
 
         // Sensor 2
-        const sensor2Coords = sensorHelper2.geometry.getAttribute('position');
+        const sensor2Coords = sensorHelper2.geometry.getAttribute("position");
 
-        const sensor2Near = sensorHelper2.pointMap['c'][0];
-        sensor2MinRangeLabel.position.set(-sensor2Coords.getZ(sensor2Near) + 0.01, sensor2Coords.getY(sensor2Near) + sensor2.position.y, sensor2Coords.getX(sensor2Near));
+        const sensor2Near = sensorHelper2.pointMap["c"][0];
+        sensor2MinRangeLabel.position.set(-sensor2Coords.getZ(sensor2Near) + 0.01,
+            sensor2Coords.getY(sensor2Near) + sensor2.position.y,
+            sensor2Coords.getX(sensor2Near)
+        );
         sensor2MinRangeLabel.element.textContent = `Min Range: ${sensor2.near.toFixed(1)} m.`;
 
-        const sensor2Far = sensorHelper1.pointMap['t'][0];
-        sensor2MaxRangeLabel.position.set(-sensor2Coords.getZ(sensor2Far) - 0.01, sensor2Coords.getY(sensor2Far) + sensor2.position.y, sensor2Coords.getX(sensor2Far));
+        const sensor2Far = sensorHelper1.pointMap["t"][0];
+        sensor2MaxRangeLabel.position.set(-sensor2Coords.getZ(sensor2Far) - 0.01,
+            sensor2Coords.getY(sensor2Far) + sensor2.position.y,
+            sensor2Coords.getX(sensor2Far)
+        );
         sensor2MaxRangeLabel.element.textContent = `Max Range: ${sensor2.far.toFixed(1)} m.`;
 
         if (activeCamera == sensor1) {
@@ -374,8 +396,7 @@ function main() {
             sensor2MinRangeLabel.visible = false;
             sensor2MaxRangeLabel.element.style.marginTop = "4em";
             sensor2MaxRangeLabel.element.style.marginLeft = "-6em";
-        }
-        else {
+        } else {
             /* revert to style in main.css */
             sensor1MinRangeLabel.visible = true;
             sensor1MaxRangeLabel.element.style.marginTop = "";
@@ -387,52 +408,54 @@ function main() {
     }
 
     function dtr(d) {
-        return d * Math.PI / 180;
+        return (d * Math.PI) / 180;
     }
+
     function rtd(r) {
-        return r * 180 / Math.PI;
+        return (r * 180) / Math.PI;
     }
+
     function maxNear(far) {
         return Math.min(far / 2, 5);
     }
+
     function aspectFromFov(horizFov, vertFov) {
         return Math.tan(dtr(horizFov / 2)) / Math.tan(dtr(vertFov / 2));
     }
 
     const sensors = {
-        "Intel RealSense D415": { "horizFov": 65, "vertFov": 40, "minRange": 0.3, "maxRange": 10 },
-        "Intel RealSense D435/D435i": { "horizFov": 87, "vertFov": 58, "minRange": 0.2, "maxRange": 10 },
-        "Intel RealSense D455": { "horizFov": 87, "vertFov": 58, "minRange": 0.6, "maxRange": 10 },
-        "Structure Core Mono": { "horizFov": 59, "vertFov": 46, "minRange": 0.3, "maxRange": 10 },
-        "Structure Core RGB": { "horizFov": 59, "vertFov": 46, "minRange": 0.3, "maxRange": 10 },
-        "Mynt Eye S S210": { "horizFov": 95, "vertFov": 50, "minRange": 0.5, "maxRange": 7 },
-        "Mynt Eye S S1030": { "horizFov": 122, "vertFov": 76, "minRange": 0.5, "maxRange": 18 },
-        "Mynt Eye D D1000-120": { "horizFov": 105, "vertFov": 58, "minRange": 0.3, "maxRange": 10 },
-        "Mynt Eye D D1000-50": { "horizFov": 64, "vertFov": 38, "minRange": 0.5, "maxRange": 15 },
-        "Mynt Eye D 1200": { "horizFov": 59, "vertFov": 35, "minRange": 0.2, "maxRange": 3 },
-        "Mynt Eye P": { "horizFov": 75, "vertFov": 40, "minRange": 0.2, "maxRange": 4.2 },
-        "Orbbec Astra +": { "horizFov": 55, "vertFov": 45, "minRange": 0.6, "maxRange": 8 },
-        "Orbbec Astra + S": { "horizFov": 55, "vertFov": 45, "minRange": 0.4, "maxRange": 2 },
-        "Orbbec Astra Stereo S U3": { "horizFov": 68, "vertFov": 45, "minRange": 0.25, "maxRange": 2.5 },
-        "Orbbec Astra Embedded S": { "horizFov": 68, "vertFov": 45, "minRange": 0.25, "maxRange": 1.5 },
-        "Orbbec Astra": { "horizFov": 60, "vertFov": 50, "minRange": 0.6, "maxRange": 8 },
-        "Orbbec Astra S": { "horizFov": 60, "vertFov": 50, "minRange": 0.4, "maxRange": 2 },
-        "Orbbec Astra Pro": { "horizFov": 60, "vertFov": 50, "minRange": 0.6, "maxRange": 8 },
-        "Orbbec Astra Mini": { "horizFov": 60, "vertFov": 50, "minRange": 0.6, "maxRange": 5 },
-        "Orbbec Astra Mini S": { "horizFov": 60, "vertFov": 50, "minRange": 0.35, "maxRange": 1 },
-        "Orbbec Astra Persee": { "horizFov": 60, "vertFov": 49, "minRange": 0.6, "maxRange": 8 },
-        "StereoLabs Zed": { "horizFov": 90, "vertFov": 60, "minRange": 0.3, "maxRange": 25 },
-        "StereoLabs Zed 2": { "horizFov": 110, "vertFov": 70, "minRange": 0.2, "maxRange": 20 },
-        "StereoLabs Zed Mini": { "horizFov": 90, "vertFov": 60, "minRange": 0.1, "maxRange": 15 },
-        "Luxonis OAK-D": { "horizFov": 72, "vertFov": 45, "minRange": 0.2, "maxRange": 20 },
-        "pmd Pico Flexx": { "horizFov": 62, "vertFov": 45, "minRange": 0.1, "maxRange": 4 },
-        "pmd Pico Monstar": { "horizFov": 100, "vertFov": 85, "minRange": 0.5, "maxRange": 6 },
-        "Azure Kinect (Narrow FOV Mode)": { "horizFov": 75, "vertFov": 65, "minRange": 0.5, "maxRange": 5.5 },
-        "Azure Kinect (Wide FOV Mode)": { "horizFov": 120, "vertFov": 120, "minRange": 0.25, "maxRange": 2.9 },
-    }
+        "Intel RealSense D415": { horizFov: 65, vertFov: 40, minRange: 0.3, maxRange: 10 },
+        "Intel RealSense D435/D435i": { horizFov: 87, vertFov: 58, minRange: 0.2, maxRange: 10 },
+        "Intel RealSense D455": { horizFov: 87, vertFov: 58, minRange: 0.6, maxRange: 10 },
+        "Structure Core Mono": { horizFov: 59, vertFov: 46, minRange: 0.3, maxRange: 10 },
+        "Structure Core RGB": { horizFov: 59, vertFov: 46, minRange: 0.3, maxRange: 10 },
+        "Mynt Eye S S210": { horizFov: 95, vertFov: 50, minRange: 0.5, maxRange: 7 },
+        "Mynt Eye S S1030": { horizFov: 122, vertFov: 76, minRange: 0.5, maxRange: 18 },
+        "Mynt Eye D D1000-120": { horizFov: 105, vertFov: 58, minRange: 0.3, maxRange: 10 },
+        "Mynt Eye D D1000-50": { horizFov: 64, vertFov: 38, minRange: 0.5, maxRange: 15 },
+        "Mynt Eye D 1200": { horizFov: 59, vertFov: 35, minRange: 0.2, maxRange: 3 },
+        "Mynt Eye P": { horizFov: 75, vertFov: 40, minRange: 0.2, maxRange: 4.2 },
+        "Orbbec Astra +": { horizFov: 55, vertFov: 45, minRange: 0.6, maxRange: 8 },
+        "Orbbec Astra + S": { horizFov: 55, vertFov: 45, minRange: 0.4, maxRange: 2 },
+        "Orbbec Astra Stereo S U3": { horizFov: 68, vertFov: 45, minRange: 0.25, maxRange: 2.5 },
+        "Orbbec Astra Embedded S": { horizFov: 68, vertFov: 45, minRange: 0.25, maxRange: 1.5 },
+        "Orbbec Astra": { horizFov: 60, vertFov: 50, minRange: 0.6, maxRange: 8 },
+        "Orbbec Astra S": { horizFov: 60, vertFov: 50, minRange: 0.4, maxRange: 2 },
+        "Orbbec Astra Pro": { horizFov: 60, vertFov: 50, minRange: 0.6, maxRange: 8 },
+        "Orbbec Astra Mini": { horizFov: 60, vertFov: 50, minRange: 0.6, maxRange: 5 },
+        "Orbbec Astra Mini S": { horizFov: 60, vertFov: 50, minRange: 0.35, maxRange: 1 },
+        "Orbbec Astra Persee": { horizFov: 60, vertFov: 49, minRange: 0.6, maxRange: 8 },
+        "StereoLabs Zed": { horizFov: 90, vertFov: 60, minRange: 0.3, maxRange: 25 },
+        "StereoLabs Zed 2": { horizFov: 110, vertFov: 70, minRange: 0.2, maxRange: 20 },
+        "StereoLabs Zed Mini": { horizFov: 90, vertFov: 60, minRange: 0.1, maxRange: 15 },
+        "Luxonis OAK-D": { horizFov: 72, vertFov: 45, minRange: 0.2, maxRange: 20 },
+        "pmd Pico Flexx": { horizFov: 62, vertFov: 45, minRange: 0.1, maxRange: 4 },
+        "pmd Pico Monstar": { horizFov: 100, vertFov: 85, minRange: 0.5, maxRange: 6 },
+        "Azure Kinect (Narrow FOV Mode)": { horizFov: 75, vertFov: 65, minRange: 0.5, maxRange: 5.5 },
+        "Azure Kinect (Wide FOV Mode)": { horizFov: 120, vertFov: 120, minRange: 0.25, maxRange: 2.9 },
+    };
 
     function buildGui() {
-
         gui = new GUI();
 
         const params = {
@@ -449,63 +472,61 @@ function main() {
             "grid size (m.)": 1,
         };
 
-        sensor1Controller = gui.add(params, 'sensor1 (yellow)', Object.keys(sensors)).onChange(function (val) {
-
-            console.log(`sensor1=${val}`);
-            const params = sensors[val];
-
-            _preventExtraRenders = true;
-            nearController.setValue(params["minRange"]);
-            farController.setValue(params["maxRange"]);
-            fovController.setValue(params["vertFov"]);
-            const aspect = aspectFromFov(params["horizFov"], params["vertFov"]);
-            aspectController.setValue(aspect);
-            requestAnimationFrame(render);
-            _preventExtraRenders = false;
-
-        });
-
-        sensor2Controller = gui.add(params, 'sensor2 (cyan)', ['None', ...Object.keys(sensors)]).onChange(function (val) {
-
-            if (val === 'None') {
-                sensor2.shouldBeVisible = false;
-                sensor2.visible = false;
-                sensorHelper2.visible = false;
-                sensor2MinRangeLabel.visible = false;
-                sensor2MaxRangeLabel.visible = false;
-                requestAnimationFrame(render);
-            }
-            else {
-                sensor2.shouldBeVisible = true;
-                sensor2.visible = true;
-                sensorHelper2.visible = true;
-                sensor2MinRangeLabel.visible = true;
-                sensor2MaxRangeLabel.visible = true;
-
-                console.log(`sensor2=${val}`);
+        sensor1Controller = gui
+            .add(params, "sensor1 (yellow)", Object.keys(sensors))
+            .onChange(function(val) {
+                console.log(`sensor1=${val}`);
                 const params = sensors[val];
 
                 _preventExtraRenders = true;
-                sensor2.near = params["minRange"];
-                sensor2.far = params["maxRange"];
-                sensor2.fov = params["vertFov"];
-                sensor2.aspect = aspectFromFov(params["horizFov"], params["vertFov"]);
+                nearController.setValue(params["minRange"]);
+                farController.setValue(params["maxRange"]);
+                fovController.setValue(params["vertFov"]);
+                const aspect = aspectFromFov(params["horizFov"], params["vertFov"]);
+                aspectController.setValue(aspect);
                 requestAnimationFrame(render);
                 _preventExtraRenders = false;
+            });
 
-            }
-        });
+        sensor2Controller = gui
+            .add(params, "sensor2 (cyan)", ["None", ...Object.keys(sensors)])
+            .onChange(function(val) {
+                if (val === "None") {
+                    sensor2.shouldBeVisible = false;
+                    sensor2.visible = false;
+                    sensorHelper2.visible = false;
+                    sensor2MinRangeLabel.visible = false;
+                    sensor2MaxRangeLabel.visible = false;
+                    requestAnimationFrame(render);
+                } else {
+                    sensor2.shouldBeVisible = true;
+                    sensor2.visible = true;
+                    sensorHelper2.visible = true;
+                    sensor2MinRangeLabel.visible = true;
+                    sensor2MaxRangeLabel.visible = true;
 
-        checkerboardDistanceController = gui.add(params, 'wall dist (m.)', 0.1, 30.0, 0.1).onChange(function (val) {
+                    console.log(`sensor2=${val}`);
+                    const params = sensors[val];
 
-            wallGroup.position.set(val, 30, 0);
-            // checkerboard2.position.set(val, -30, 0);
-            if (!_preventExtraRenders) requestAnimationFrame(render);
+                    _preventExtraRenders = true;
+                    sensor2.near = params["minRange"];
+                    sensor2.far = params["maxRange"];
+                    sensor2.fov = params["vertFov"];
+                    sensor2.aspect = aspectFromFov(params["horizFov"], params["vertFov"]);
+                    requestAnimationFrame(render);
+                    _preventExtraRenders = false;
+                }
+            });
 
-        });
+        checkerboardDistanceController = gui
+            .add(params, "wall dist (m.)", 0.1, 30.0, 0.1)
+            .onChange(function(val) {
+                wallGroup.position.set(val, 30, 0);
+                // checkerboard2.position.set(val, -30, 0);
+                if (!_preventExtraRenders) requestAnimationFrame(render);
+            });
 
-        gridSizeController = gui.add(params, 'grid size (m.)', 0.01, 2, 0.01).onChange(function (val) {
-
+        gridSizeController = gui.add(params, "grid size (m.)", 0.01, 2, 0.01).onChange(function(val) {
             // Texture is 2x2 in pixels.
             // To have a 1m grid size (the plane is 60m square), the texture must be scaled by 60m/1m/2.
             const scalar = FLOOR_WIDTH / val / 2;
@@ -515,80 +536,74 @@ function main() {
 
             // Remove and re-create the gridHelper with the new grid size.
             wallGroup.remove(gridHelper);
-            gridHelper = new THREE.GridHelper(FLOOR_WIDTH, FLOOR_WIDTH / val, new THREE.Color(0x333333), new THREE.Color(0x333333));
+            gridHelper = new THREE.GridHelper(
+                FLOOR_WIDTH,
+                FLOOR_WIDTH / val,
+                new THREE.Color(0x333333),
+                new THREE.Color(0x333333)
+            );
             // gridHelper.position.set(checkerboardDistanceController.getValue(), 30, 0);
             gridHelper.rotateZ(Math.PI / 2);
             gridHelper.position.set(0, 0, 0);
             wallGroup.add(gridHelper);
 
             if (!_preventExtraRenders) requestAnimationFrame(render);
-
         });
 
         const sensor1Folder = gui.addFolder("Advanced Sensor1 Controls");
 
-        nearController = sensor1Folder.add(params, 'min range (m.)', 0.1, maxNear(sensor1.far), 0.1).onChange(function (val) {
+        nearController = sensor1Folder
+            .add(params, "min range (m.)", 0.1, maxNear(sensor1.far), 0.1)
+            .onChange(function(val) {
+                sensor1.near = val;
+                farController.min(val + 1);
+                farController.updateDisplay();
+                if (!_preventExtraRenders) requestAnimationFrame(render);
+            });
 
-            sensor1.near = val;
-            farController.min(val + 1);
-            farController.updateDisplay();
-            if (!_preventExtraRenders) requestAnimationFrame(render);
+        farController = sensor1Folder
+            .add(params, "max range (m.)", sensor1.near + 1, 40, 0.1)
+            .onChange(function(val) {
+                sensor1.far = val;
+                nearController.max(maxNear(val));
+                nearController.updateDisplay();
+                if (!_preventExtraRenders) requestAnimationFrame(render);
+            });
 
-        });
-
-        farController = sensor1Folder.add(params, 'max range (m.)', sensor1.near + 1, 40, 0.1).onChange(function (val) {
-
-            sensor1.far = val;
-            nearController.max(maxNear(val));
-            nearController.updateDisplay();
-            if (!_preventExtraRenders) requestAnimationFrame(render);
-
-        });
-
-        fovController = sensor1Folder.add(params, 'vertical fov (°)', 10, 179).onChange(function (val) {
-
+        fovController = sensor1Folder.add(params, "vertical fov (°)", 10, 179).onChange(function(val) {
             sensor1.fov = val;
             if (!_preventExtraRenders) requestAnimationFrame(render);
-
         });
 
-        aspectController = sensor1Folder.add(params, 'aspect ratio', 0.4, 5.0).onChange(function (val) {
-
+        aspectController = sensor1Folder.add(params, "aspect ratio", 0.4, 5.0).onChange(function(val) {
             sensor1.aspect = val;
             if (!_preventExtraRenders) requestAnimationFrame(render);
-
         });
 
         const sceneFolder = gui.addFolder("Advanced Scene Controls");
 
-        propDistanceController = sceneFolder.add(params, 'prop dist (m.)', 0, 30.0, 0.1).onChange(function (val) {
+        propDistanceController = sceneFolder
+            .add(params, "prop dist (m.)", 0, 30.0, 0.1)
+            .onChange(function(val) {
+                propGroup.position.set(val, 0, 0);
+                if (!_preventExtraRenders) requestAnimationFrame(render);
+            });
 
-            propGroup.position.set(val, 0, 0);
-            if (!_preventExtraRenders) requestAnimationFrame(render);
-
-        });
-
-        sceneFolder.add(params, 'show props').onChange(function (val) {
-
+        sceneFolder.add(params, "show props").onChange(function(val) {
             propGroup.visible = val;
             requestAnimationFrame(render);
-
         });
 
-        sceneFolder.add(params, 'view from camera').onChange(function (val) {
-
+        sceneFolder.add(params, "view from camera").onChange(function(val) {
             if (val) {
                 activeCamera = sensor1;
-            }
-            else {
+            } else {
                 activeCamera = camera;
             }
             requestAnimationFrame(render);
-
         });
 
         gui.open();
-
     }
 
     init();

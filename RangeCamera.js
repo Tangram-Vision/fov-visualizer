@@ -22,20 +22,8 @@ class RangeCamera extends THREE.Group {
             horizFovInRad = 0;
         }
 
-        const nearGroup = createFrustumGroup(
-            vertFovInRad,
-            horizFovInRad,
-            nearRange,
-            0xff0000,
-            0
-        );
-        const farGroup = createFrustumGroup(
-            vertFovInRad,
-            horizFovInRad,
-            farRange,
-            0xffff00,
-            nearRange
-        );
+        const nearGroup = createFrustumGroup(vertFovInRad, horizFovInRad, nearRange, 0xff0000, 0);
+        const farGroup = createFrustumGroup(vertFovInRad, horizFovInRad, farRange, 0xffff00, nearRange);
         // const cameraGroup = new THREE.Group();
         super();
         this.add(nearGroup);
@@ -44,13 +32,7 @@ class RangeCamera extends THREE.Group {
     }
 }
 
-function createFrustumGroup(
-    vertFovInRad,
-    horizFovInRad,
-    range,
-    frustumColor,
-    minRange
-) {
+function createFrustumGroup(vertFovInRad, horizFovInRad, range, frustumColor, minRange) {
     const widthSegments = 32;
     const heightSegments = 16;
     const phiStart = -horizFovInRad / 2; // Start rotated around the axis
@@ -59,9 +41,7 @@ function createFrustumGroup(
     // Clipping planes for vertical FOV restriction
     // TODO: Base these on real geometry
     const clipPlaneHeight = range * Math.sin(vertFovInRad / 2);
-    const clipPlanes = [
-        new THREE.Plane(new THREE.Vector3(0, -1, 0), clipPlaneHeight),
-    ];
+    const clipPlanes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), clipPlaneHeight)];
     // level them with the camera
     for (const plane of clipPlanes) {
         plane.translate(new THREE.Vector3(0, 1, 0));
