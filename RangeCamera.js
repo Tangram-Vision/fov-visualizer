@@ -6,7 +6,12 @@ import * as THREE from "https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37C
 // - Create planes vertically for vfov (with some geometry)
 // - Repeat for far range
 class RangeCamera extends THREE.Group {
-    constructor(vertFovInRad, horizFovInRad, nearRange, farRange) {
+    constructor(sensor_info, sensor_colors) {
+        console.log(sensor_info);
+        const horizFovInRad = (sensor_info["horizFov"] * Math.PI) / 180;
+        const vertFovInRad = (sensor_info["vertFov"] * Math.PI) / 180;
+        const nearRange = sensor_info["minRange"];
+        const farRange = sensor_info["maxRange"];
         // We can't have a vertical FOV above 180*
         if (vertFovInRad > Math.PI) {
             vertFovInRad = Math.PI;
@@ -35,35 +40,28 @@ class RangeCamera extends THREE.Group {
 function createFrustumGroup(vertFovInRad, horizFovInRad, range, frustumColor, minRange) {
     const widthSegments = 32;
     const heightSegments = 16;
-    const phiStart = -horizFovInRad / 2; // Start rotated around the axis
+    const phiStart = Math.PI;
     const phiLength = horizFovInRad;
-
-    // Clipping planes for vertical FOV restriction
-    // TODO: Base these on real geometry
-    const clipPlaneHeight = range * Math.sin(vertFovInRad / 2);
-    const clipPlanes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), clipPlaneHeight)];
-    // level them with the camera
-    for (const plane of clipPlanes) {
-        plane.translate(new THREE.Vector3(0, 1, 0));
-    }
+    const thetaStart = Math.PI / 2 - vertFovInRad / 2;
+    const thetaLength = vertFovInRad;
 
     const sphereGeometry = new THREE.SphereGeometry(
         range,
         widthSegments,
         heightSegments,
         phiStart,
-        phiLength
+        phiLength,
+        thetaStart,
+        thetaLength
     );
     const sphereMaterial = new THREE.MeshBasicMaterial({
         color: 0x666666,
         side: THREE.DoubleSide,
-        clippingPlanes: clipPlanes,
-        clipIntersection: true,
         opacity: 0.3,
         transparent: true,
     });
     const rangeSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    rangeSphere.rotateY(Math.PI);
+    rangeSphere.rotateY(-horizFovInRad / 2);
 
     // frustum vfov and hfov rings
     const ringInnerRad = range - 0.02;
@@ -99,43 +97,48 @@ function createFrustumGroup(vertFovInRad, horizFovInRad, range, frustumColor, mi
         vRingThetaLength
     );
     const ringVfov = new THREE.Mesh(vRingGeometry, ringMaterial);
-    ringVfov.rotateY(Math.PI);
+    ringVfov.rotateZ(-vertFovInRad);
 
     // Lines to the outer edges of our sphere
     const lineMaterial = new THREE.LineBasicMaterial({
         color: frustumColor,
     });
 
-    const frustum_max_x = range * Math.sin(horizFovInRad / 2); // right
-    const frustum_max_y = range * Math.sin(vertFovInRad / 2); // up
-    const frustum_max_z = range * Math.cos(vertFovInRad / 2); // forward
-    const frustum_min_x = minRange * Math.sin(horizFovInRad / 2); // right
-    const frustum_min_y = minRange * Math.sin(vertFovInRad / 2); // up
-    const frustum_min_z = minRange * Math.cos(vertFovInRad / 2); // forward
+    // Horizontal bounds
+    const hFrustumMinOpp = minRange * Math.sin(horizFovInRad / 2);
+    const hFrustumMinAdj = minRange * Math.cos(horizFovInRad / 2);
+    const hFrustumMaxOpp = range * Math.sin(horizFovInRad / 2);
+    const hFrustumMaxAdj = range * Math.cos(horizFovInRad / 2);
+
+    // Vertical bounds
+    const vFrustumMinOpp = minRange * Math.sin(vertFovInRad / 2);
+    const vFrustumMinAdj = minRange * Math.cos(vertFovInRad / 2);
+    const vFrustumMaxOpp = range * Math.sin(vertFovInRad / 2);
+    const vFrustumMaxAdj = range * Math.cos(vertFovInRad / 2);
 
     const rightLineGeometry = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(frustum_min_x, 0, frustum_min_z),
-        new THREE.Vector3(frustum_max_x, 0, frustum_max_z),
+        new THREE.Vector3(hFrustumMinAdj, 0, hFrustumMinOpp),
+        new THREE.Vector3(hFrustumMaxAdj, 0, hFrustumMaxOpp),
     ]);
     const rightLine = new THREE.Line(rightLineGeometry, lineMaterial);
     const leftLineGeometry = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(-frustum_min_x, 0, frustum_min_z),
-        new THREE.Vector3(-frustum_max_x, 0, frustum_max_z),
+        new THREE.Vector3(hFrustumMinAdj, 0, -hFrustumMinOpp),
+        new THREE.Vector3(hFrustumMaxAdj, 0, -hFrustumMaxOpp),
     ]);
     const leftLine = new THREE.Line(leftLineGeometry, lineMaterial);
     const upLineGeometry = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(0, frustum_min_y, -frustum_min_z),
-        new THREE.Vector3(0, frustum_max_y, -frustum_max_z),
+        new THREE.Vector3(vFrustumMinAdj, vFrustumMinOpp, 0),
+        new THREE.Vector3(vFrustumMaxAdj, vFrustumMaxOpp, 0),
     ]);
     const upLine = new THREE.Line(upLineGeometry, lineMaterial);
     const downLineGeometry = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(0, -frustum_min_y, -frustum_min_z),
-        new THREE.Vector3(0, -frustum_max_y, -frustum_max_z),
+        new THREE.Vector3(vFrustumMinAdj, -vFrustumMinOpp, 0),
+        new THREE.Vector3(vFrustumMaxAdj, -vFrustumMaxOpp, 0),
     ]);
     const downLine = new THREE.Line(downLineGeometry, lineMaterial);
     const centerLineGeometry = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(0, 0, frustum_min_z),
-        new THREE.Vector3(0, 0, frustum_max_z),
+        new THREE.Vector3(minRange, 0, 0),
+        new THREE.Vector3(range, 0, 0),
     ]);
     const centerLine = new THREE.Line(centerLineGeometry, lineMaterial);
 
@@ -148,8 +151,7 @@ function createFrustumGroup(vertFovInRad, horizFovInRad, range, frustumColor, mi
     group.add(leftLine);
     group.add(upLine);
     group.add(downLine);
-    // Center on the camera position
-    group.position.set(0, 1, 0);
+    group.add(centerLine);
 
     return group;
 }
