@@ -46,7 +46,8 @@ function main() {
     let sensor1, sensor2;
     let sensor1Colors, sensor2Colors;
     let checkerboardTexture, gridHelper, checkerboard;
-    let checkerboardTexture2, checkerboard2;
+    let polarGridGroup;
+    // let checkerboardTexture2, checkerboard2;
     let wallGroup, propGroup;
 
     let sensor1MinRangeLabel, sensor1MaxRangeLabel, sensor2MinRangeLabel, sensor2MaxRangeLabel;
@@ -139,14 +140,30 @@ function main() {
         gridHelper.rotateZ(Math.PI / 2);
         gridHelper.position.set(0, 0, 0);
 
-        // const polarGridHelper = new THREE.PolarGridHelper(200, 16, 8, 64, 0x0000ff, 0x808080);
-        // polarGridHelper.position.y = - 150;
-        // polarGridHelper.position.x = 200;
-        // scene.add(polarGridHelper);
-
-        // const axesHelper = new THREE.AxesHelper(5);
-        // axesHelper.position.set(0, 0.01, 0);
-        // scene.add(axesHelper);
+        // Populate the polar grid helper, but don't add.
+        // Addition is controlled in the GUI.
+        polarGridGroup = new THREE.Group();
+        const polarGridHelper = new THREE.PolarGridHelper(
+            FLOOR_WIDTH / 2,
+            24,
+            FLOOR_WIDTH / 2 - 1,
+            64,
+            0x333333,
+            0x111111
+        );
+        polarGridHelper.material.opacity = 0.3;
+        const plane = new THREE.Mesh(
+            new THREE.PlaneGeometry(FLOOR_WIDTH, FLOOR_WIDTH),
+            new THREE.MeshBasicMaterial({
+                color: 0x555555,
+                side: THREE.DoubleSide,
+                opacity: 0.3,
+                transparent: true,
+            })
+        );
+        plane.rotateX(Math.PI / 2);
+        polarGridGroup.add(polarGridHelper);
+        polarGridGroup.add(plane);
 
         const controls = new OrbitControls(camera, labelRenderer.domElement);
         controls.addEventListener("change", render);
@@ -369,7 +386,9 @@ function main() {
             "horizontal fov (°)": rtd(sensor1.horizFovInRad),
             "sensor1 (blue)": "rs1",
             "sensor2 (orange)": "rs1",
+            "show wall": true,
             "show props": true,
+            "switch to polar": false,
             "prop dist (m.)": propGroup.position.x,
             "wall dist (m.)": wallGroup.position.x,
             "grid size (m.)": 1,
@@ -493,16 +512,23 @@ function main() {
                 if (!_preventExtraRenders) requestAnimationFrame(render);
             });
 
+        sceneFolder.add(params, "show wall").onChange(function(val) {
+            wallGroup.visible = val;
+            requestAnimationFrame(render);
+        });
+
         sceneFolder.add(params, "show props").onChange(function(val) {
             propGroup.visible = val;
             requestAnimationFrame(render);
         });
 
-        sceneFolder.add(params, "view from camera").onChange(function(val) {
+        sceneFolder.add(params, "switch to polar").onChange(function(val) {
             if (val) {
-                activeCamera = sensor1;
+                scene.remove(checkerboard);
+                scene.add(polarGridGroup);
             } else {
-                activeCamera = camera;
+                scene.remove(polarGridGroup);
+                scene.add(checkerboard);
             }
             requestAnimationFrame(render);
         });
