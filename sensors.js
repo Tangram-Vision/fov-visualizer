@@ -28,6 +28,7 @@ const sensors = {
     "pmd Pico Monstar": { horizFov: 100, vertFov: 85, minRange: 0.5, maxRange: 6 },
     "Azure Kinect (Narrow FOV Mode)": { horizFov: 75, vertFov: 65, minRange: 0.5, maxRange: 5.5 },
     "Azure Kinect (Wide FOV Mode)": { horizFov: 120, vertFov: 120, minRange: 0.25, maxRange: 2.9 },
+    "DreamVu PAL Mini": { horizFov: 360, vertFov: 80, minRange: 0.0, maxRange: 3 },
 };
 
 export { sensors };
