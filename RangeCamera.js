@@ -6,34 +6,117 @@ import * as THREE from "https://cdn.skypack.dev/pin/three@v0.129.0-chk6X8RSBl37C
 // - Create planes vertically for vfov (with some geometry)
 // - Repeat for far range
 class RangeCamera extends THREE.Group {
-    constructor(sensor_info, sensor_colors) {
+    constructor(
+        sensor_info, // Object from sensors.js
+        sensor_colors // Array of colors in hex format. At least 2 colors.
+    ) {
         console.log(sensor_info);
         const horizFovInRad = (sensor_info["horizFov"] * Math.PI) / 180;
         const vertFovInRad = (sensor_info["vertFov"] * Math.PI) / 180;
         const nearRange = sensor_info["minRange"];
         const farRange = sensor_info["maxRange"];
-        // We can't have a vertical FOV above 180*
-        if (vertFovInRad > Math.PI) {
-            vertFovInRad = Math.PI;
-        }
-        if (vertFovInRad < 0) {
-            vertFovInRad = 0;
-        }
-        // We can't have a horizontal FOV above 360*
-        if (horizFovInRad > 2 * Math.PI) {
-            horizFovInRad = 2 * Math.PI;
-        }
-        if (horizFovInRad < 0) {
-            horizFovInRad = 0;
-        }
 
-        const nearGroup = createFrustumGroup(vertFovInRad, horizFovInRad, nearRange, 0xff0000, 0);
-        const farGroup = createFrustumGroup(vertFovInRad, horizFovInRad, farRange, 0xffff00, nearRange);
-        // const cameraGroup = new THREE.Group();
         super();
+
+        this.horizFovInRad = horizFovInRad;
+        this.vertFovInRad = vertFovInRad;
+        this.nearRange = nearRange;
+        this.farRange = farRange;
+        this.sensor_colors = sensor_colors;
+
+        this.verifyParameterConditions();
+
+        const nearGroup = createFrustumGroup(
+            this.vertFovInRad,
+            this.horizFovInRad,
+            this.nearRange,
+            this.sensor_colors[0],
+            0
+        );
+        const farGroup = createFrustumGroup(
+            this.vertFovInRad,
+            this.horizFovInRad,
+            this.farRange,
+            this.sensor_colors[1],
+            this.nearRange
+        );
+
         this.add(nearGroup);
         this.add(farGroup);
+        this.nearGroup = nearGroup;
+        this.farGroup = farGroup;
+
         this.type = "RangeCamera";
+    }
+
+    verifyParameterConditions() {
+        // We can't have a vertical FOV above 180*
+        if (this.vertFovInRad > Math.PI) {
+            this.vertFovInRad = Math.PI;
+        }
+        if (this.vertFovInRad < 0) {
+            this.vertFovInRad = 0;
+        }
+        // We can't have a horizontal FOV above 360*
+        if (this.horizFovInRad > 2 * Math.PI) {
+            this.horizFovInRad = 2 * Math.PI;
+        }
+        if (this.horizFovInRad < 0) {
+            this.horizFovInRad = 0;
+        }
+
+        if (this.sensor_colors.length < 2) {
+            this.sensor_colors = [0xff0000, 0xffff00];
+        }
+    }
+
+    updateNearGroup() {
+        this.remove(this.nearGroup);
+        this.nearGroup = createFrustumGroup(
+            this.vertFovInRad,
+            this.horizFovInRad,
+            this.nearRange,
+            this.sensor_colors[0],
+            0
+        );
+        this.add(this.nearGroup);
+    }
+
+    updateFarGroup() {
+        this.remove(this.farGroup);
+        this.farGroup = createFrustumGroup(
+            this.vertFovInRad,
+            this.horizFovInRad,
+            this.farRange,
+            this.sensor_colors[1],
+            this.nearRange
+        );
+        this.add(this.farGroup);
+    }
+
+    setNearRange(newNearRange) {
+        this.nearRange = newNearRange;
+        this.verifyParameterConditions();
+        this.updateNearGroup();
+    }
+
+    setFarRange(newFarRange) {
+        this.farRange = newFarRange;
+        this.verifyParameterConditions();
+        this.updateFarGroup();
+    }
+
+    setHorizFov(newHorizFovInRad) {
+        this.horizFovInRad = newHorizFovInRad;
+        this.verifyParameterConditions();
+        this.updateNearGroup();
+        this.updateFarGroup();
+    }
+    setVertFov(newVertFovInRad) {
+        this.vertFovInRad = newVertFovInRad;
+        this.verifyParameterConditions();
+        this.updateNearGroup();
+        this.updateFarGroup();
     }
 }
 
