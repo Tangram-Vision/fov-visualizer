@@ -294,75 +294,67 @@ function main() {
     }
 
     function render() {
-        // console.log(performance.now());
-        // sensor1.updateProjectionMatrix();
-        // sensor1.update();
-        // sensor2.updateProjectionMatrix();
-        // sensor2.update();
-        // updateRangeTextLabels();
-
         renderer.render(scene, activeCamera);
         labelRenderer.render(scene, activeCamera);
     }
 
-    // function updateRangeTextLabels() {
-    //     // NOTE: Small +/- 0.01 adjustments to X coordinate are to ensure
-    //     // the label is inside the camera frustum and can render when
-    //     // viewing through the camera (though we hide min-range labels when
-    //     // viewing through the camera).
+    function updateRangeTextLabels() {
+        // Sensor 1
+        let hFrustumMinOpp = sensor1.nearRange * Math.sin(sensor1.horizFovInRad / 2);
+        let hFrustumMinAdj = sensor1.nearRange * Math.cos(sensor1.horizFovInRad / 2);
+        let hFrustumMaxOpp = sensor1.farRange * Math.sin(sensor1.horizFovInRad / 2);
+        let hFrustumMaxAdj = sensor1.farRange * Math.cos(sensor1.horizFovInRad / 2);
 
-    //     // Sensor 1
-    //     const sensor1Coords = sensor1.position;
-    //     // console.log(`Min: ${-coords.getZ(sensor1Near)}, ${coords.getY(sensor1Near)}, ${coords.getX(sensor1Near)}`);
+        sensor1MinRangeLabel.position.set(
+            sensor1.position.x + hFrustumMinAdj,
+            sensor1.position.y + 1,
+            sensor1.position.z + hFrustumMinOpp
+        );
+        sensor1MinRangeLabel.element.textContent = `Min Range: ${sensor1.nearRange.toFixed(1)} m.`;
 
-    //     const sensor1Near = sensor1.pointMap["c"][0];
-    //     sensor1MinRangeLabel.position.set(-sensor1Coords.getZ(sensor1Near) + 0.01,
-    //         sensor1Coords.getY(sensor1Near) + sensor1.position.y,
-    //         sensor1Coords.getX(sensor1Near)
-    //     );
-    //     sensor1MinRangeLabel.element.textContent = `Min Range: ${sensor1.near.toFixed(1)} m.`;
+        sensor1MaxRangeLabel.position.set(
+            sensor1.position.x + hFrustumMaxAdj,
+            sensor1.position.y + 1,
+            sensor1.position.z + hFrustumMaxOpp
+        );
+        sensor1MaxRangeLabel.element.textContent = `Max Range: ${sensor1.farRange.toFixed(1)} m.`;
 
-    //     const sensor1Far = sensor1.pointMap["t"][0];
-    //     sensor1MaxRangeLabel.position.set(-sensor1Coords.getZ(sensor1Far) - 0.01,
-    //         sensor1Coords.getY(sensor1Far) + sensor1.position.y,
-    //         sensor1Coords.getX(sensor1Far)
-    //     );
-    //     sensor1MaxRangeLabel.element.textContent = `Max Range: ${sensor1.far.toFixed(1)} m.`;
+        hFrustumMinOpp = sensor2.nearRange * Math.sin(sensor2.horizFovInRad / 2);
+        hFrustumMinAdj = sensor2.nearRange * Math.cos(sensor2.horizFovInRad / 2);
+        hFrustumMaxOpp = sensor2.farRange * Math.sin(sensor2.horizFovInRad / 2);
+        hFrustumMaxAdj = sensor2.farRange * Math.cos(sensor2.horizFovInRad / 2);
 
-    //     // Sensor 2
-    //     const sensor2Coords = sensor2.geometry.getAttribute("position");
+        sensor2MinRangeLabel.position.set(
+            sensor2.position.x + hFrustumMinAdj,
+            sensor2.position.y + 0.5,
+            sensor2.position.z + hFrustumMinOpp
+        );
+        sensor2MinRangeLabel.element.textContent = `Min Range: ${sensor2.nearRange.toFixed(1)} m.`;
 
-    //     const sensor2Near = sensor2.pointMap["c"][0];
-    //     sensor2MinRangeLabel.position.set(-sensor2Coords.getZ(sensor2Near) + 0.01,
-    //         sensor2Coords.getY(sensor2Near) + sensor2.position.y,
-    //         sensor2Coords.getX(sensor2Near)
-    //     );
-    //     sensor2MinRangeLabel.element.textContent = `Min Range: ${sensor2.near.toFixed(1)} m.`;
+        sensor2MaxRangeLabel.position.set(
+            sensor2.position.x + hFrustumMaxAdj,
+            sensor2.position.y + 0.5,
+            sensor2.position.z + hFrustumMaxOpp
+        );
+        sensor2MaxRangeLabel.element.textContent = `Max Range: ${sensor2.farRange.toFixed(1)} m.`;
 
-    //     const sensor2Far = sensor1.pointMap["t"][0];
-    //     sensor2MaxRangeLabel.position.set(-sensor2Coords.getZ(sensor2Far) - 0.01,
-    //         sensor2Coords.getY(sensor2Far) + sensor2.position.y,
-    //         sensor2Coords.getX(sensor2Far)
-    //     );
-    //     sensor2MaxRangeLabel.element.textContent = `Max Range: ${sensor2.far.toFixed(1)} m.`;
-
-    //     if (activeCamera == sensor1) {
-    //         sensor1MinRangeLabel.visible = false;
-    //         sensor1MaxRangeLabel.element.style.marginTop = "2em";
-    //         sensor1MaxRangeLabel.element.style.marginLeft = "-6em";
-    //         sensor2MinRangeLabel.visible = false;
-    //         sensor2MaxRangeLabel.element.style.marginTop = "4em";
-    //         sensor2MaxRangeLabel.element.style.marginLeft = "-6em";
-    //     } else {
-    //         /* revert to style in main.css */
-    //         sensor1MinRangeLabel.visible = true;
-    //         sensor1MaxRangeLabel.element.style.marginTop = "";
-    //         sensor1MaxRangeLabel.element.style.marginLeft = "";
-    //         sensor2MinRangeLabel.visible = sensor2.shouldBeVisible;
-    //         sensor2MaxRangeLabel.element.style.marginTop = "";
-    //         sensor2MaxRangeLabel.element.style.marginLeft = "";
-    //     }
-    // }
+        if (activeCamera == sensor1) {
+            sensor1MinRangeLabel.visible = false;
+            sensor1MaxRangeLabel.element.style.marginTop = "2em";
+            sensor1MaxRangeLabel.element.style.marginLeft = "-6em";
+            sensor2MinRangeLabel.visible = false;
+            sensor2MaxRangeLabel.element.style.marginTop = "4em";
+            sensor2MaxRangeLabel.element.style.marginLeft = "-6em";
+        } else {
+            /* revert to style in main.css */
+            sensor1MinRangeLabel.visible = true;
+            sensor1MaxRangeLabel.element.style.marginTop = "";
+            sensor1MaxRangeLabel.element.style.marginLeft = "";
+            sensor2MinRangeLabel.visible = true;
+            sensor2MaxRangeLabel.element.style.marginTop = "";
+            sensor2MaxRangeLabel.element.style.marginLeft = "";
+        }
+    }
 
     function dtr(d) {
         return (d * Math.PI) / 180;
@@ -402,6 +394,7 @@ function main() {
                 sensor1 = new RangeCamera(sensors[val], sensor1Colors);
                 sensor1.translateY(1);
                 scene.add(sensor1);
+                updateRangeTextLabels();
                 _preventExtraRenders = true;
                 requestAnimationFrame(render);
                 _preventExtraRenders = false;
@@ -428,6 +421,7 @@ function main() {
                     sensor2 = new RangeCamera(sensors[val], sensor2Colors);
                     sensor2.translateY(1);
                     scene.add(sensor2);
+                    updateRangeTextLabels();
                     _preventExtraRenders = true;
                     requestAnimationFrame(render);
                     _preventExtraRenders = false;
@@ -443,6 +437,7 @@ function main() {
                 // We don't want this to overlap with the farRange
                 farController.min(val + 1);
                 farController.updateDisplay();
+                updateRangeTextLabels();
                 if (!_preventExtraRenders) requestAnimationFrame(render);
             });
 
@@ -453,6 +448,7 @@ function main() {
                 // We don't want this to overlap with the nearRange
                 nearController.max(maxNear(val));
                 nearController.updateDisplay();
+                updateRangeTextLabels();
                 if (!_preventExtraRenders) requestAnimationFrame(render);
             });
 
