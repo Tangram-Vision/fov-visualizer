@@ -152,12 +152,12 @@ function main() {
             0x333333,
             0x111111
         );
-        polarGridHelper.material.opacity = 0.3;
+        polarGridHelper.material.opacity = 0.9;
         const plane = new THREE.Mesh(
             new THREE.PlaneGeometry(FLOOR_WIDTH, FLOOR_WIDTH),
             new THREE.MeshBasicMaterial({
                 color: 0x555555,
-                side: THREE.DoubleSide,
+                side: THREE.BackSide,
                 opacity: 0.3,
                 transparent: true,
             })
