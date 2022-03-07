@@ -340,23 +340,6 @@ function main() {
             sensor2.position.z + hFrustumMaxOpp
         );
         sensor2MaxRangeLabel.element.textContent = `Max Range: ${sensor2.farRange.toFixed(1)} m.`;
-
-        if (activeCamera == sensor1) {
-            sensor1MinRangeLabel.visible = false;
-            sensor1MaxRangeLabel.element.style.marginTop = "2em";
-            sensor1MaxRangeLabel.element.style.marginLeft = "-6em";
-            sensor2MinRangeLabel.visible = false;
-            sensor2MaxRangeLabel.element.style.marginTop = "4em";
-            sensor2MaxRangeLabel.element.style.marginLeft = "-6em";
-        } else {
-            /* revert to style in main.css */
-            sensor1MinRangeLabel.visible = true;
-            sensor1MaxRangeLabel.element.style.marginTop = "";
-            sensor1MaxRangeLabel.element.style.marginLeft = "";
-            sensor2MinRangeLabel.visible = true;
-            sensor2MaxRangeLabel.element.style.marginTop = "";
-            sensor2MaxRangeLabel.element.style.marginLeft = "";
-        }
     }
 
     function dtr(d) {
@@ -385,11 +368,11 @@ function main() {
             "Open: sensor 2 datasheet": function() {
                 if (sensor2Info.datasheetURL) window.open(sensor2Info.datasheetURL);
             },
-            "sensor1 (blue)": "rs1",
-            "sensor2 (orange)": "rs1",
+            "sensor1 (blue)": "Azure Kinect (Narrow FOV Mode)",
+            "sensor2 (orange)": "Azure Kinect (Wide FOV Mode)",
             "show wall": true,
             "show props": true,
-            "switch to polar": false,
+            "floor design": "checkerboard",
             "prop dist (m.)": propGroup.position.x,
             "wall dist (m.)": wallGroup.position.x,
             "grid size (m.)": 1,
@@ -533,16 +516,19 @@ function main() {
             requestAnimationFrame(render);
         });
 
-        sceneFolder.add(params, "switch to polar").onChange(function(val) {
-            if (val) {
-                scene.remove(checkerboard);
-                scene.add(polarGridGroup);
-            } else {
-                scene.remove(polarGridGroup);
-                scene.add(checkerboard);
-            }
-            requestAnimationFrame(render);
-        });
+        sceneFolder
+            .add(params, "floor design", ["checkerboard", "polar grid"])
+            .onChange(function(val) {
+                if (val === "polar grid") {
+                    scene.remove(checkerboard);
+                    scene.add(polarGridGroup);
+                }
+                if (val === "checkerboard") {
+                    scene.remove(polarGridGroup);
+                    scene.add(checkerboard);
+                }
+                requestAnimationFrame(render);
+            });
 
         gui.open();
     }
