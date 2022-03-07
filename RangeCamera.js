@@ -15,6 +15,10 @@ class RangeCamera extends THREE.Group {
         const vertFovInRad = (sensor_info["vertFov"] * Math.PI) / 180;
         const nearRange = sensor_info["minRange"];
         const farRange = sensor_info["maxRange"];
+        let vertFovOffsetInRad = 0;
+        if (sensor_info["vertFovOffsetInRad"]) {
+            vertFovOffsetInRad = (sensor_info["vertFovOffsetInRad"] * Math.PI) / 180;
+        }
 
         super();
 
@@ -22,6 +26,7 @@ class RangeCamera extends THREE.Group {
         this.vertFovInRad = vertFovInRad;
         this.nearRange = nearRange;
         this.farRange = farRange;
+        this.vertFovOffsetInRad = vertFovOffsetInRad;
         this.sensor_colors = sensor_colors;
 
         this.verifyParameterConditions();
@@ -29,6 +34,7 @@ class RangeCamera extends THREE.Group {
         const nearGroup = createFrustumGroup(
             this.vertFovInRad,
             this.horizFovInRad,
+            this.vertFovOffsetInRad,
             this.nearRange,
             this.sensor_colors[0],
             0
@@ -36,6 +42,7 @@ class RangeCamera extends THREE.Group {
         const farGroup = createFrustumGroup(
             this.vertFovInRad,
             this.horizFovInRad,
+            this.vertFovOffsetInRad,
             this.farRange,
             this.sensor_colors[1],
             this.nearRange
@@ -75,6 +82,7 @@ class RangeCamera extends THREE.Group {
         this.nearGroup = createFrustumGroup(
             this.vertFovInRad,
             this.horizFovInRad,
+            this.vertFovOffsetInRad,
             this.nearRange,
             this.sensor_colors[0],
             0
@@ -87,6 +95,7 @@ class RangeCamera extends THREE.Group {
         this.farGroup = createFrustumGroup(
             this.vertFovInRad,
             this.horizFovInRad,
+            this.vertFovOffsetInRad,
             this.farRange,
             this.sensor_colors[1],
             this.nearRange
@@ -120,12 +129,22 @@ class RangeCamera extends THREE.Group {
     }
 }
 
-function createFrustumGroup(vertFovInRad, horizFovInRad, range, frustumColor, minRange) {
+function createFrustumGroup(
+    vertFovInRad,
+    horizFovInRad,
+    vertFovOffsetInRad,
+    range,
+    frustumColor,
+    minRange
+) {
+    const halfVertFov = vertFovInRad / 2;
+    const halfHorizFov = horizFovInRad / 2;
+
     const widthSegments = 32;
-    const heightSegments = 16;
+    const heightSegments = 32;
     const phiStart = Math.PI;
     const phiLength = horizFovInRad;
-    const thetaStart = Math.PI / 2 - vertFovInRad / 2;
+    const thetaStart = Math.PI / 2 - vertFovOffsetInRad - halfVertFov;
     const thetaLength = vertFovInRad;
 
     const sphereGeometry = new THREE.SphereGeometry(
@@ -144,14 +163,14 @@ function createFrustumGroup(vertFovInRad, horizFovInRad, range, frustumColor, mi
         transparent: true,
     });
     const rangeSphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    rangeSphere.rotateY(-horizFovInRad / 2);
+    rangeSphere.rotateY(-halfHorizFov);
 
     // frustum vfov and hfov rings
     const ringInnerRad = range - 0.02;
     const ringOuterRad = range + 0.02;
     const ringThetaSegments = 50;
     const ringPhiSegments = 1;
-    const hRingThetaStart = horizFovInRad / 2;
+    const hRingThetaStart = halfHorizFov;
     const hRingThetaLength = horizFovInRad;
     const hRingGeometry = new THREE.RingGeometry(
         ringInnerRad,
@@ -169,7 +188,7 @@ function createFrustumGroup(vertFovInRad, horizFovInRad, range, frustumColor, mi
     ringHfov.rotateX(Math.PI / 2);
     ringHfov.rotateZ(-horizFovInRad);
 
-    const vRingThetaStart = vertFovInRad / 2;
+    const vRingThetaStart = halfVertFov + vertFovOffsetInRad;
     const vRingThetaLength = vertFovInRad;
     const vRingGeometry = new THREE.RingGeometry(
         ringInnerRad,
@@ -188,16 +207,10 @@ function createFrustumGroup(vertFovInRad, horizFovInRad, range, frustumColor, mi
     });
 
     // Horizontal bounds
-    const hFrustumMinOpp = minRange * Math.sin(horizFovInRad / 2);
-    const hFrustumMinAdj = minRange * Math.cos(horizFovInRad / 2);
-    const hFrustumMaxOpp = range * Math.sin(horizFovInRad / 2);
-    const hFrustumMaxAdj = range * Math.cos(horizFovInRad / 2);
-
-    // Vertical bounds
-    const vFrustumMinOpp = minRange * Math.sin(vertFovInRad / 2);
-    const vFrustumMinAdj = minRange * Math.cos(vertFovInRad / 2);
-    const vFrustumMaxOpp = range * Math.sin(vertFovInRad / 2);
-    const vFrustumMaxAdj = range * Math.cos(vertFovInRad / 2);
+    const hFrustumMinOpp = minRange * Math.sin(halfHorizFov);
+    const hFrustumMinAdj = minRange * Math.cos(halfHorizFov);
+    const hFrustumMaxOpp = range * Math.sin(halfHorizFov);
+    const hFrustumMaxAdj = range * Math.cos(halfHorizFov);
 
     const rightLineGeometry = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(hFrustumMinAdj, 0, hFrustumMinOpp),
@@ -209,16 +222,30 @@ function createFrustumGroup(vertFovInRad, horizFovInRad, range, frustumColor, mi
         new THREE.Vector3(hFrustumMaxAdj, 0, -hFrustumMaxOpp),
     ]);
     const leftLine = new THREE.Line(leftLineGeometry, lineMaterial);
+
+    // Vertical bounds
+    // "Down" and "Up" must be derived separately due to the chance of offset in the vertical FOV
+    const vFrustumMinOpp = minRange * Math.sin(halfVertFov + vertFovOffsetInRad);
+    const vFrustumMinAdj = minRange * Math.cos(halfVertFov + vertFovOffsetInRad);
+    const vFrustumMaxOpp = range * Math.sin(halfVertFov + vertFovOffsetInRad);
+    const vFrustumMaxAdj = range * Math.cos(halfVertFov + vertFovOffsetInRad);
     const upLineGeometry = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(vFrustumMinAdj, vFrustumMinOpp, 0),
         new THREE.Vector3(vFrustumMaxAdj, vFrustumMaxOpp, 0),
     ]);
     const upLine = new THREE.Line(upLineGeometry, lineMaterial);
+
+    const dvFrustumMinOpp = minRange * Math.sin(vertFovOffsetInRad - halfVertFov);
+    const dvFrustumMinAdj = minRange * Math.cos(vertFovOffsetInRad - halfVertFov);
+    const dvFrustumMaxOpp = range * Math.sin(vertFovOffsetInRad - halfVertFov);
+    const dvFrustumMaxAdj = range * Math.cos(vertFovOffsetInRad - halfVertFov);
     const downLineGeometry = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(vFrustumMinAdj, -vFrustumMinOpp, 0),
-        new THREE.Vector3(vFrustumMaxAdj, -vFrustumMaxOpp, 0),
+        new THREE.Vector3(dvFrustumMinAdj, dvFrustumMinOpp, 0),
+        new THREE.Vector3(dvFrustumMaxAdj, dvFrustumMaxOpp, 0),
     ]);
     const downLine = new THREE.Line(downLineGeometry, lineMaterial);
+
+    // Center Line
     const centerLineGeometry = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(minRange, 0, 0),
         new THREE.Vector3(range, 0, 0),
