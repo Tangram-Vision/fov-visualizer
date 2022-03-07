@@ -43,7 +43,8 @@ function main() {
     let activeCamera;
 
     let spotLight, lightHelper, shadowCameraHelper;
-    let sensor1, sensor2;
+    let sensor1Info, sensor2Info; // sensor info from sensors.js
+    let sensor1, sensor2; // RangeCameras
     let sensor1Colors, sensor2Colors;
     let checkerboardTexture, gridHelper, checkerboard;
     let polarGridGroup;
@@ -181,13 +182,15 @@ function main() {
 
         // Add our first sensor
         sensor1Colors = [0xb3e5fc, 0x03a9f4]; // blue tones
-        sensor1 = new RangeCamera(sensors["Intel RealSense D415"], sensor1Colors);
+        sensor1Info = sensors["Azure Kinect (Narrow FOV Mode)"];
+        sensor1 = new RangeCamera(sensor1Info, sensor1Colors);
         sensor1.translateY(1);
         scene.add(sensor1);
 
         // Add our second comparable sensor, but keep it hidden
         sensor2Colors = [0xf3b533, 0xf8982e]; // orange tones
-        sensor2 = new RangeCamera(sensors["Intel RealSense D435/D435i"], sensor2Colors);
+        sensor2Info = sensors["Azure Kinect (Wide FOV Mode)"];
+        sensor2 = new RangeCamera(sensor2Info, sensor2Colors);
         sensor2.visible = false;
         sensor2.translateY(1);
         scene.add(sensor2);
@@ -376,6 +379,12 @@ function main() {
             "max range (m.)": sensor1.farRange,
             "vertical fov (°)": rtd(sensor1.vertFovInRad),
             "horizontal fov (°)": rtd(sensor1.horizFovInRad),
+            "Open: sensor 1 datasheet": function() {
+                if (sensor1Info.datasheetURL) window.open(sensor1Info.datasheetURL);
+            },
+            "Open: sensor 2 datasheet": function() {
+                if (sensor2Info.datasheetURL) window.open(sensor2Info.datasheetURL);
+            },
             "sensor1 (blue)": "rs1",
             "sensor2 (orange)": "rs1",
             "show wall": true,
@@ -391,7 +400,8 @@ function main() {
             .onChange(function(val) {
                 console.log(`sensor1=${val}`);
                 scene.remove(sensor1);
-                sensor1 = new RangeCamera(sensors[val], sensor1Colors);
+                sensor1Info = sensors[val];
+                sensor1 = new RangeCamera(sensor1Info, sensor1Colors);
                 sensor1.translateY(1);
                 scene.add(sensor1);
                 updateRangeTextLabels();
@@ -418,15 +428,20 @@ function main() {
 
                     console.log(`sensor2=${val}`);
                     scene.remove(sensor2);
-                    sensor2 = new RangeCamera(sensors[val], sensor2Colors);
+                    sensor2Info = sensors[val];
+                    sensor2 = new RangeCamera(sensor2Info, sensor2Colors);
                     sensor2.translateY(1);
                     scene.add(sensor2);
                     updateRangeTextLabels();
+
                     _preventExtraRenders = true;
                     requestAnimationFrame(render);
                     _preventExtraRenders = false;
                 }
             });
+
+        gui.add(params, "Open: sensor 1 datasheet");
+        gui.add(params, "Open: sensor 2 datasheet");
 
         const sensor1Folder = gui.addFolder("Advanced Sensor1 Controls");
 
@@ -533,13 +548,9 @@ function main() {
     }
 
     init();
-
     buildGui();
-
-    sensor1Controller.setValue("Intel RealSense D415");
+    sensor1Controller.setValue("Azure Kinect (Narrow FOV Mode)");
     sensor2Controller.setValue("None");
-    // Setting sensor triggers a render already.
-    // render();
 }
 
 export { main };
