@@ -16,8 +16,8 @@ class RangeCamera extends THREE.Group {
         const nearRange = sensor_info["minRange"];
         const farRange = sensor_info["maxRange"];
         let vertFovOffsetInRad = 0;
-        if (sensor_info["vertFovOffsetInRad"]) {
-            vertFovOffsetInRad = (sensor_info["vertFovOffsetInRad"] * Math.PI) / 180;
+        if (sensor_info["vertFovOffset"]) {
+            vertFovOffsetInRad = (sensor_info["vertFovOffset"] * Math.PI) / 180;
         }
 
         super();
