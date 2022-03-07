@@ -147,7 +147,7 @@ function main() {
         const polarGridHelper = new THREE.PolarGridHelper(
             FLOOR_WIDTH / 2,
             24,
-            FLOOR_WIDTH / 2 - 1,
+            FLOOR_WIDTH / 2,
             64,
             0x333333,
             0x111111
