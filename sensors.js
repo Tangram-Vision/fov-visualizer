@@ -16,7 +16,7 @@ const sensors = {
     "DreamVu PAL Mini": {
         horizFov: 360,
         vertFov: 89,
-        vertFovOffsetInRad: 26.5,
+        vertFovOffset: 26.5,
         minRange: 0.0,
         maxRange: 3,
         datasheetURL: "https://dreamvu.com/pal-mini/",
