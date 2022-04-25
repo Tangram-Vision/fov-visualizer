@@ -18,8 +18,16 @@ const sensors = {
         vertFov: 89,
         vertFovOffset: 26.5,
         minRange: 0.0,
-        maxRange: 3,
-        datasheetURL: "https://dreamvu.com/pal-mini/",
+        maxRange: 5,
+        datasheetURL: "https://drive.google.com/file/d/1uMx0ufSIw7cwNRBAaDr8mWh1rLT4TQa9/view?usp=sharing",
+    },
+    "DreamVu PAL USB": {
+        horizFov: 360,
+        vertFov: 110,
+        vertFovOffset: 26.5,
+        minRange: 0.0,
+        maxRange: 10,
+        datasheetURL: "https://drive.google.com/file/d/1tWwWcKtkLLWeHNeV1D8aV7Rhv6m3cS7y/view?usp=sharing",
     },
     "Intel RealSense D415": {
         horizFov: 65,
